@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    [SerializeField] private int MoveSpeed;
-    [SerializeField] private Transform snakeBodyPrefab;
+    public float MoveSpeed;
+    public Transform snakeBodyPrefab;
 
     //private Rigidbody2D rigidbody2D;
     private Vector3 MoveDirectionVector;
@@ -22,16 +22,30 @@ public class PlayerController : MonoBehaviour
         snakeBodyList.Add(transform);
     }
 
-    private void Start()
-    {
-        InvokeRepeating("SnakeBodyFollowsHead", 2f, 0.03f);
-    }
-
     private void Update()
     {
-        MovePlayer();
+        //input
+        MovePlayerUpdate();
     }
 
+    private void FixedUpdate()
+    {
+        //physics
+        MovePlayerFixedUpdate();
+    }
+
+    private void MovePlayerFixedUpdate()
+    {
+        SetupTransformViaDirection();
+        SnakeBodyFollowsHead();
+    }
+
+    private void MovePlayerUpdate()
+    {
+        SetupDirectionViaInputProvided();
+        GetInputMovement();
+        BorderWarping();
+    }
 
     private void SnakeBodyFollowsHead()
     {
@@ -40,15 +54,6 @@ public class PlayerController : MonoBehaviour
         {
             snakeBodyList[i].position = snakeBodyList[i - 1].position;
         }
-    }
-
-    private void MovePlayer()
-    {
-        GetInputMovement();
-        SetupDirectionViaInputProvided();
-        SetupTransformViaDirection();
-
-        BorderWarping();
     }
 
     //Screen size = -9,5,9,-5 in clockwise == 18*10
@@ -78,6 +83,8 @@ public class PlayerController : MonoBehaviour
         position.x = position.x * -1;
         transform.position = position;
     }
+
+
     private void ScreenWarpingOnYAxis()
     {
         Vector3 position = transform.position;
@@ -139,7 +146,7 @@ public class PlayerController : MonoBehaviour
     private void TransformModifyViaDirection(Vector2 directionValue)
     {
         Vector3 position = transform.position;
-        MoveDirectionVector = new Vector3(MoveSpeed * Time.deltaTime * directionValue.x, MoveSpeed * Time.deltaTime * directionValue.y);
+        MoveDirectionVector = new Vector3(MoveSpeed * directionValue.x, MoveSpeed * directionValue.y);
         position += MoveDirectionVector;
         transform.position = position;
     }
