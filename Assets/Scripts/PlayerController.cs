@@ -1,23 +1,45 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
     [SerializeField] private int MoveSpeed;
+    [SerializeField] private Transform snakeBodyPrefab;
+
     //private Rigidbody2D rigidbody2D;
     private Vector3 MoveDirectionVector;
     private Direction prevDirection, currentDirection;
     private float horizontal, vertical;
+    private int foodEaten;
 
+    private List<Transform> snakeBodyList;
 
     private void Awake()
     {
-       // rigidbody2D = GetComponent<Rigidbody2D>();
+        // rigidbody2D = GetComponent<Rigidbody2D>();
+        snakeBodyList = new List<Transform>();
+        snakeBodyList.Add(transform);
+    }
+
+    private void Start()
+    {
+        InvokeRepeating("SnakeBodyFollowsHead", 2f, 0.03f);
     }
 
     private void Update()
     {
-
         MovePlayer();
+    }
+
+
+    private void SnakeBodyFollowsHead()
+    {
+        // i = 0 is head of snake
+        for (int i = snakeBodyList.Count - 1; i > 0; i--)
+        {
+            snakeBodyList[i].position = snakeBodyList[i - 1].position;
+        }
     }
 
     private void MovePlayer()
@@ -120,6 +142,23 @@ public class PlayerController : MonoBehaviour
         MoveDirectionVector = new Vector3(MoveSpeed * Time.deltaTime * directionValue.x, MoveSpeed * Time.deltaTime * directionValue.y);
         position += MoveDirectionVector;
         transform.position = position;
+    }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if(collision.CompareTag("Food"))
+        {
+            foodEaten++;
+            GrowSnake();
+        }
+    }
+
+    private void GrowSnake()
+    {
+        Transform snakeBodyTransform = Instantiate(snakeBodyPrefab);
+        snakeBodyTransform.position = snakeBodyList[snakeBodyList.Count - 1].position;
+
+       snakeBodyList.Add(snakeBodyTransform.transform);
     }
 }
 

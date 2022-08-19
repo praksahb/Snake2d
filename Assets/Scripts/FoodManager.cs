@@ -20,9 +20,9 @@ public class FoodManager : MonoBehaviour
     private void Start()
     {
          //RandomizeSpawnLocation();
-        InvokeRepeating("SpawnFoodAtRandomLocation", 2f, 8f);
-    }   
-     
+        InvokeRepeating("SpawnFoodAtRandomSpawnPosition", 2f, 4f);
+    }
+
     private void CreateOrCheckSingleton()
     {
         if (SingletonInstance != null && SingletonInstance != this)
@@ -35,12 +35,12 @@ public class FoodManager : MonoBehaviour
         }
     }
 
-    private void SpawnFoodAtRandomLocation()
+    private void SpawnFoodAtRandomSpawnPosition()
     {
-        SpawnFood(SpawnPosition());
+        SpawnFood(RandomSpawnPosition());
     }
 
-    private Vector3 SpawnPosition()
+    private Vector3 RandomSpawnPosition()
     {
         Bounds bounds = SpawnArea.bounds;
         float x = Random.Range(bounds.min.x, bounds.max.x);
@@ -52,6 +52,9 @@ public class FoodManager : MonoBehaviour
     private void SpawnFood(Vector2 spawnPosition)
     {
         massGainer = Instantiate(FoodPrefab, spawnPosition, Quaternion.identity);
+        Debug.Log(massGainer);
         Destroy(massGainer, 8f);
     }
+
+
 }
