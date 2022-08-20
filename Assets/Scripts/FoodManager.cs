@@ -52,7 +52,7 @@ public class FoodManager : MonoBehaviour
     private void SpawnFood(Vector2 spawnPosition)
     {
         massGainer = Instantiate(FoodPrefab, spawnPosition, Quaternion.identity);
-        Debug.Log(massGainer);
+        //Debug.Log(massGainer);
         Destroy(massGainer, 8f);
     }
 

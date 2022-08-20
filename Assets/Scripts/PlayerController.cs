@@ -1,15 +1,14 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    [SerializeField] private int MoveSpeed;
-    [SerializeField] private Transform snakeBodyPrefab;
+    public float MoveSpeed;
+    public Transform snakeBodyPrefab;
 
-    //private Rigidbody2D rigidbody2D;
+    private Rigidbody2D snakeRigidBody;
     private Vector3 MoveDirectionVector;
-    private Direction prevDirection, currentDirection;
+    private Direction prevDirection, currentDirection = Direction.down;
     private float horizontal, vertical;
     private int foodEaten;
 
@@ -17,68 +16,100 @@ public class PlayerController : MonoBehaviour
 
     private void Awake()
     {
-        // rigidbody2D = GetComponent<Rigidbody2D>();
+        snakeRigidBody = GetComponent<Rigidbody2D>();
+
         snakeBodyList = new List<Transform>();
-        snakeBodyList.Add(transform);
+        snakeBodyList.Add(gameObject.transform);
+        GrowSnake("Initial");
+        GrowSnake("Initial");
+        GrowSnake("Initial");
+        GrowSnake("Initial");
+        GrowSnake("Initial");
     }
 
     private void Start()
     {
-        InvokeRepeating("SnakeBodyFollowsHead", 2f, 0.03f);
+        InvokeRepeating("GrowSnake", 0.2f, 0.9f);
     }
 
     private void Update()
     {
-        MovePlayer();
+        //input
+        MovePlayerUpdate();
+    } 
+
+    //TimeStep : 0.02, moveSpeed = 0.1 initial
+    //timeStep : 0.04, MoveSpeed = 0.2 initial, 0.5 good enough for end.
+    
+    private void FixedUpdate()
+    {
+        //physics
+        MovePlayerFixedUpdate();
     }
 
+    private void MovePlayerFixedUpdate()
+    {
+        SetupTransformViaDirection();
+        SnakeBodyFollowsHead();
+    }
+
+    private void MovePlayerUpdate()
+    {
+        SetupDirectionViaInputProvided();
+        GetInputMovement();
+        BorderWrapAround();
+    }
 
     private void SnakeBodyFollowsHead()
     {
-        // i = 0 is head of snake
+        // loop in reverse order.
+        // n item gets position of n - 1 item
+        //only x,y values.  z values remain same for each item
         for (int i = snakeBodyList.Count - 1; i > 0; i--)
         {
-            snakeBodyList[i].position = snakeBodyList[i - 1].position;
+            //get x, y values only for snake body
+            Vector2 prevPosition = snakeBodyList[i-1].position;
+            snakeBodyList[i].position = new Vector3(prevPosition.x, prevPosition.y, snakeBodyList[i].position.z);
         }
     }
+    
 
-    private void MovePlayer()
+    // can use bounds for checking if it has been crossed
+    // similar to how bounds are used to create a random spawnArea
+    private void BorderWrapAround()
     {
-        GetInputMovement();
-        SetupDirectionViaInputProvided();
-        SetupTransformViaDirection();
+        float borderExtremeLeft = -27;
+        float borderRight = 27;
+        float borderTop = 15;
+        float borderBottom = -15;
 
-        BorderWarping();
-    }
-
-    //Screen size = -9,5,9,-5 in clockwise == 18*10
-    private void BorderWarping()
-    {
-        if (transform.position.x >= 9 && currentDirection == Direction.right)
+        if (transform.position.x >= borderRight && currentDirection == Direction.right)
         {
-            ScreenWarpingOnXAxis();
+            ScreenWrappingOnXAxis();
         }
-        if (transform.position.x <= -9 && currentDirection == Direction.left)
+        if (transform.position.x <= borderExtremeLeft && currentDirection == Direction.left)
         {
-            ScreenWarpingOnXAxis();
+            ScreenWrappingOnXAxis();
         }
-        if (transform.position.y >= 5 && currentDirection == Direction.up)
+        if (transform.position.y >= borderTop && currentDirection == Direction.up)
         {
-            ScreenWarpingOnYAxis();
+            ScreenWrappingOnYAxis();
         }
-        if (transform.position.y <= -5 && currentDirection == Direction.down)
+        if (transform.position.y <= borderBottom && currentDirection == Direction.down)
         {
-            ScreenWarpingOnYAxis();
+            ScreenWrappingOnYAxis();
         }
     }
 
-    private void ScreenWarpingOnXAxis()
+    private void ScreenWrappingOnXAxis()
     {
         Vector3 position = transform.position;
         position.x = position.x * -1;
         transform.position = position;
     }
-    private void ScreenWarpingOnYAxis()
+
+
+    private void ScreenWrappingOnYAxis()
     {
         Vector3 position = transform.position;
         position.y = position.y * -1;
@@ -108,6 +139,7 @@ public class PlayerController : MonoBehaviour
         {
             prevDirection = currentDirection;
             currentDirection = Direction.up;
+
         }
         if (vertical == -1 && prevDirection != Direction.up)
         {
@@ -116,32 +148,46 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    // top-down feel = -90, 180, 90, 0
+
+    // ?sideways feel = 0, 90, 0, 90
+
     private void SetupTransformViaDirection()
     {
+        float rotateImageLeftByEulerAngle = -90f;
+        float rotateImageUpwardsByEulerAngle = 180f;
+        float rotateImageRightByEulerAngle = 90f;
+        float rotateImageDownwardsByEulerAngle = 0f;
+
         if (currentDirection == Direction.left)
         {
             TransformModifyViaDirection(new Vector2(-1, 0));
-        }
-        if (currentDirection == Direction.right)
-        {
-            TransformModifyViaDirection(new Vector2(1, 0));
+            transform.rotation = Quaternion.Euler(0f, 0f, rotateImageLeftByEulerAngle);
         }
         if (currentDirection == Direction.up)
         {
             TransformModifyViaDirection(new Vector2(0, 1));
+            transform.rotation = Quaternion.Euler(0f, 0f, rotateImageUpwardsByEulerAngle);
+        }
+        if (currentDirection == Direction.right)
+        {
+            TransformModifyViaDirection(new Vector2(1, 0));
+            transform.rotation = Quaternion.Euler(0f, 0f, rotateImageRightByEulerAngle);
         }
         if (currentDirection == Direction.down)
         {
             TransformModifyViaDirection(new Vector2(0, -1));
+            transform.rotation = Quaternion.Euler(0f, 0f, rotateImageDownwardsByEulerAngle);
         }
     }
 
     private void TransformModifyViaDirection(Vector2 directionValue)
     {
         Vector3 position = transform.position;
-        MoveDirectionVector = new Vector3(MoveSpeed * Time.deltaTime * directionValue.x, MoveSpeed * Time.deltaTime * directionValue.y);
+        MoveDirectionVector = new Vector3(MoveSpeed * directionValue.x, MoveSpeed * directionValue.y);
         position += MoveDirectionVector;
-        transform.position = position;
+        snakeRigidBody.MovePosition(position);
+        //transform.position = position;
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
@@ -151,14 +197,32 @@ public class PlayerController : MonoBehaviour
             foodEaten++;
             GrowSnake();
         }
+        if (collision.CompareTag("PlayerBody"))
+            Debug.Log("Touched Yourself!");
     }
 
     private void GrowSnake()
     {
-        Transform snakeBodyTransform = Instantiate(snakeBodyPrefab);
-        snakeBodyTransform.position = snakeBodyList[snakeBodyList.Count - 1].position;
+        Transform prevSnake = snakeBodyList[snakeBodyList.Count - 1];
+        Vector3 position = new Vector3(prevSnake.position.x, prevSnake.position.y, 0);
 
-       snakeBodyList.Add(snakeBodyTransform.transform);
+        //Transform snakeBodyTransform = Instantiate(snakeBodyPrefab, prevSnake);
+        Transform snakeBodyTransform = Instantiate(snakeBodyPrefab, position, Quaternion.identity);
+        snakeBodyList.Add(snakeBodyTransform);
+    }
+
+    private void GrowSnake(string value)
+    {
+        if(value == "Initial")
+        {
+            Transform prevSnake = snakeBodyList[snakeBodyList.Count - 1];
+            Vector3 position = new Vector3(prevSnake.position.x, prevSnake.position.y, 1);
+
+            //Transform snakeBodyTransform = Instantiate(snakeBodyPrefab, prevSnake);
+            Transform snakeBodyTransform = Instantiate(snakeBodyPrefab, position, Quaternion.identity);
+            snakeBodyTransform.tag = "InitialPlayerBody";
+            snakeBodyList.Add(snakeBodyTransform);
+        }
     }
 }
 
