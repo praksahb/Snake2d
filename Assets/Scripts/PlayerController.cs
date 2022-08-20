@@ -5,6 +5,7 @@ public class PlayerController : MonoBehaviour
 {
     public float MoveSpeed;
     public Transform snakeBodyPrefab;
+    public BoxCollider2D BorderWrappingCollider;
 
     private Rigidbody2D snakeRigidBody;
     private Vector3 MoveDirectionVector;
@@ -16,6 +17,8 @@ public class PlayerController : MonoBehaviour
 
     private void Awake()
     {
+        //BorderBounds = BorderWrappingCollider.bounds;
+
         snakeRigidBody = GetComponent<Rigidbody2D>();
 
         snakeBodyList = new List<Transform>();
@@ -73,29 +76,25 @@ public class PlayerController : MonoBehaviour
         }
     }
     
-
-    // can use bounds for checking if it has been crossed
-    // similar to how bounds are used to create a random spawnArea
     private void BorderWrapAround()
     {
-        float borderExtremeLeft = -27;
-        float borderRight = 27;
-        float borderTop = 15;
-        float borderBottom = -15;
 
-        if (transform.position.x >= borderRight && currentDirection == Direction.right)
+        Bounds bounds = BorderWrappingCollider.bounds;
+                
+        if (transform.position.x <= bounds.min.x && currentDirection == Direction.left)
         {
             ScreenWrappingOnXAxis();
-        }
-        if (transform.position.x <= borderExtremeLeft && currentDirection == Direction.left)
-        {
-            ScreenWrappingOnXAxis();
-        }
-        if (transform.position.y >= borderTop && currentDirection == Direction.up)
+        }       
+        if (transform.position.y >= bounds.max.y && currentDirection == Direction.up)
         {
             ScreenWrappingOnYAxis();
         }
-        if (transform.position.y <= borderBottom && currentDirection == Direction.down)
+        if (transform.position.x >= bounds.max.x && currentDirection == Direction.right)
+        {
+            ScreenWrappingOnXAxis();
+        }
+
+        if (transform.position.y <= bounds.min.y && currentDirection == Direction.down)
         {
             ScreenWrappingOnYAxis();
         }
