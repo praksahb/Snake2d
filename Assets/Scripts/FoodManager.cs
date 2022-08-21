@@ -56,5 +56,8 @@ public class FoodManager : MonoBehaviour
         Destroy(massGainer, 8f);
     }
 
+    private void SpawnShield()
+    {
 
+    }
 }
