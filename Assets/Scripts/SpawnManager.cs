@@ -9,14 +9,25 @@ public class SpawnManager : MonoBehaviour
     private GameObject massGainer;
     private GameObject massBurner;
 
+    private GameObject shieldPowerup;
+    private GameObject scorePowerup;
+    private GameObject speedPowerup;
+
+    private float shieldCooldownTimer;
+    private float scoreCooldownTimer;
+    private float speedCooldownTimer;
+
     public GameObject FoodPrefabMassGainer;
     public GameObject FoodPrefabMassBurner;
 
-    //public GameObject PowerupPrefabShieldSnake;
-    //public GameObject PowerupPrefabScoreBoost;
-    //public GameObject PowerupPrefabSpeedBoost;
+    public GameObject ShieldPrefabPowerup;
+    public GameObject ScorePrefabPowerup;
+    public GameObject SpeedPrefabPowerup;
 
     public BoxCollider2D SpawnArea;
+    public int powerupCooldownTime = 3;
+
+
 
     private void Awake()
     {
@@ -26,6 +37,21 @@ public class SpawnManager : MonoBehaviour
     private void Start()
     {
         
+    }
+
+    private void Update()
+    {
+        PowerupCooldownTimer(shieldCooldownTimer);
+        PowerupCooldownTimer(scoreCooldownTimer);
+        PowerupCooldownTimer(speedCooldownTimer);
+    }
+
+    private void PowerupCooldownTimer(float cooldownTimer)
+    {
+        if (cooldownTimer > 0)
+        {
+            cooldownTimer -= Time.deltaTime;
+        }
     }
 
     private void CreateOrCheckSingleton()
@@ -52,22 +78,19 @@ public class SpawnManager : MonoBehaviour
         return snakeBounds.Contains(randomSpawnPosition) ? RandomSpawnPosition(snakeBounds) : randomSpawnPosition;
     }
 
-
-    private GameObject SpawnFoodMassGainer(Vector2 spawnPosition)
+    private void SpawnFoodMassGainer(Vector2 spawnPosition)
     {
         massGainer = Instantiate(FoodPrefabMassGainer, spawnPosition, Quaternion.identity);
         Destroy(massGainer, 8f);
-        return massGainer;
     }
 
-    private GameObject SpawnFoodMassBurner(Vector2 spawnPosition)
+    private void SpawnFoodMassBurner(Vector2 spawnPosition)
     {
         massBurner = Instantiate(FoodPrefabMassBurner, spawnPosition, Quaternion.identity);
         Destroy(massBurner, 8f);
-        return massBurner;
     }
 
-    public void SpawnFoodManagerPublicHandler(List<GameObject> snakeArrayList)
+    public void SpawnFoodPublicHandler(List<GameObject> snakeArrayList)
     {
         Bounds snakeBound = SnakeTotalBound(snakeArrayList);
 
@@ -102,8 +125,44 @@ public class SpawnManager : MonoBehaviour
     // Score Boost
     // Speed Boost
 
-    private void SpawnShield()
+    private void SpawnPowerup(Vector2 spawnPosi, GameObject powerUp, GameObject powerUpPrefab)
     {
+        powerUp = Instantiate(powerUpPrefab, spawnPosi, Quaternion.identity);
+        Destroy(powerUp, 8f);
+    }
 
+    public void SpawnPowerUpPublicHandler(List<GameObject> snakeListArray)
+    {
+        Bounds snakeBound = SnakeTotalBound(snakeListArray);
+        int randomInt = Random.Range(0, 2);
+        switch (randomInt)
+        {
+            case 0:
+                //shield
+                if(shieldCooldownTimer <= 0)
+                {
+                    SpawnPowerup(RandomSpawnPosition(snakeBound), shieldPowerup, ShieldPrefabPowerup);
+                    shieldCooldownTimer = powerupCooldownTime;
+                }
+                break;
+
+            case 1:
+                //score
+                if (scoreCooldownTimer <= 0)
+                {
+                    SpawnPowerup(RandomSpawnPosition(snakeBound), scorePowerup, ScorePrefabPowerup);
+                    scoreCooldownTimer = powerupCooldownTime;
+                }
+                break;
+
+            case 2:
+                //speed
+                if (speedCooldownTimer <= 0)
+                {
+                    SpawnPowerup(RandomSpawnPosition(snakeBound), speedPowerup, SpeedPrefabPowerup);
+                    speedCooldownTimer = powerupCooldownTime;
+                }
+                break;
+        }
     }
 }

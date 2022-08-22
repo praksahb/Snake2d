@@ -58,7 +58,7 @@ public class PlayerController : MonoBehaviour
     //call spawnManager at fixed time interval
     private void CallSpawnManager()
     {
-        SpawnManager.SingletonInstance.SpawnFoodManagerPublicHandler(snakeBodyList);
+        SpawnManager.SingletonInstance.SpawnFoodPublicHandler(snakeBodyList);
     }
 
     private void MovePlayerFixedUpdate()
