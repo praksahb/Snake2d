@@ -1,10 +1,11 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
     public float MoveSpeed;
-    public Transform snakeBodyPrefab;
+    public GameObject snakeBodyPrefab;
     public BoxCollider2D BorderWrappingCollider;
 
     private Rigidbody2D snakeRigidBody;
@@ -13,26 +14,33 @@ public class PlayerController : MonoBehaviour
     private float horizontal, vertical;
     private int foodEaten;
 
-    private List<Transform> snakeBodyList;
+    private List<GameObject> snakeBodyList;
 
     private void Awake()
     {
-        //BorderBounds = BorderWrappingCollider.bounds;
-
         snakeRigidBody = GetComponent<Rigidbody2D>();
 
-        snakeBodyList = new List<Transform>();
-        snakeBodyList.Add(gameObject.transform);
-        GrowSnake("Initial");
-        GrowSnake("Initial");
-        GrowSnake("Initial");
-        GrowSnake("Initial");
-        GrowSnake("Initial");
+        AwakeHelperFunctions();
+    }
+
+    private void AwakeHelperFunctions()
+    {
+        snakeBodyList = new List<GameObject>();
+        snakeBodyList.Add(gameObject);
+        InitializeSnakeBodyList(25);
+    }
+
+    private void InitializeSnakeBodyList(int minimumSnakeLength)
+    {
+        for (int i = 0; i < minimumSnakeLength; i++)
+        {
+            GrowSnake("Initial");
+        }
     }
 
     private void Start()
     {
-        InvokeRepeating("GrowSnake", 0.2f, 0.9f);
+        InvokeRepeating("CallSpawnManager", 0.5f, 2f);
     }
 
     private void Update()
@@ -40,14 +48,17 @@ public class PlayerController : MonoBehaviour
         //input
         MovePlayerUpdate();
     } 
-
-    //TimeStep : 0.02, moveSpeed = 0.1 initial
-    //timeStep : 0.04, MoveSpeed = 0.2 initial, 0.5 good enough for end.
-    
+   
     private void FixedUpdate()
     {
         //physics
         MovePlayerFixedUpdate();
+    }
+
+    //call spawnManager at fixed time interval
+    private void CallSpawnManager()
+    {
+        SpawnManager.SingletonInstance.SpawnFoodManagerPublicHandler(snakeBodyList.Count);
     }
 
     private void MovePlayerFixedUpdate()
@@ -71,8 +82,8 @@ public class PlayerController : MonoBehaviour
         for (int i = snakeBodyList.Count - 1; i > 0; i--)
         {
             //get x, y values only for snake body
-            Vector2 prevPosition = snakeBodyList[i-1].position;
-            snakeBodyList[i].position = new Vector3(prevPosition.x, prevPosition.y, snakeBodyList[i].position.z);
+            Vector2 prevPosition = snakeBodyList[i-1].transform.position;
+            snakeBodyList[i].transform.position = new Vector3(prevPosition.x, prevPosition.y, snakeBodyList[i].transform.position.z);
         }
     }
     
@@ -191,22 +202,36 @@ public class PlayerController : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if(collision.CompareTag("Food"))
+        if(collision.CompareTag("FoodMassGainer"))
         {
             foodEaten++;
             GrowSnake();
         }
         if (collision.CompareTag("PlayerBody"))
             Debug.Log("Touched Yourself!");
+
+        if(collision.CompareTag("FoodMassBurner"))
+        {
+            ReduceSnakeSize();
+        }
+    }
+
+    private void ReduceSnakeSize()
+    {
+        for(int i = 0; i < 5; i++)
+        {
+            GameObject snakeBodyObject = snakeBodyList[snakeBodyList.Count - 1];
+            snakeBodyList.RemoveAt(snakeBodyList.Count - 1);
+            Destroy(snakeBodyObject);
+        }
     }
 
     private void GrowSnake()
-    {
-        Transform prevSnake = snakeBodyList[snakeBodyList.Count - 1];
+    {   
+        Transform prevSnake = snakeBodyList[snakeBodyList.Count - 1].transform;
         Vector3 position = new Vector3(prevSnake.position.x, prevSnake.position.y, 0);
 
-        //Transform snakeBodyTransform = Instantiate(snakeBodyPrefab, prevSnake);
-        Transform snakeBodyTransform = Instantiate(snakeBodyPrefab, position, Quaternion.identity);
+        GameObject snakeBodyTransform = Instantiate(snakeBodyPrefab, position, Quaternion.identity);
         snakeBodyList.Add(snakeBodyTransform);
     }
 
@@ -214,13 +239,12 @@ public class PlayerController : MonoBehaviour
     {
         if(value == "Initial")
         {
-            Transform prevSnake = snakeBodyList[snakeBodyList.Count - 1];
+            Transform prevSnake = snakeBodyList[snakeBodyList.Count - 1].transform;
             Vector3 position = new Vector3(prevSnake.position.x, prevSnake.position.y, 1);
 
-            //Transform snakeBodyTransform = Instantiate(snakeBodyPrefab, prevSnake);
-            Transform snakeBodyTransform = Instantiate(snakeBodyPrefab, position, Quaternion.identity);
-            snakeBodyTransform.tag = "InitialPlayerBody";
-            snakeBodyList.Add(snakeBodyTransform);
+            GameObject snakeBodyObject = Instantiate(snakeBodyPrefab, position, Quaternion.identity);
+            snakeBodyObject.tag = "InitialPlayerBody";
+            snakeBodyList.Add(snakeBodyObject);
         }
     }
 }
