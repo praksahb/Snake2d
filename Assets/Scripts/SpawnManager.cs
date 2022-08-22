@@ -12,6 +12,10 @@ public class SpawnManager : MonoBehaviour
     public GameObject FoodPrefabMassGainer;
     public GameObject FoodPrefabMassBurner;
 
+    //public GameObject PowerupPrefabShieldSnake;
+    //public GameObject PowerupPrefabScoreBoost;
+    //public GameObject PowerupPrefabSpeedBoost;
+
     public BoxCollider2D SpawnArea;
 
     private void Awake()
@@ -36,46 +40,61 @@ public class SpawnManager : MonoBehaviour
         }
     }
 
-    private Vector3 RandomSpawnPosition()
+    // ?recursive call
+    private Vector3 RandomSpawnPosition(Bounds snakeBounds)
     {
         Bounds bounds = SpawnArea.bounds;
-        float x = Random.Range(bounds.min.x, bounds.max.x);
-        float y = Random.Range(bounds.min.y, bounds.max.y);
+        Vector3 randomSpawnPosition;
+        randomSpawnPosition.x = Random.Range(bounds.min.x, bounds.max.x);
+        randomSpawnPosition.y = Random.Range(bounds.min.y, bounds.max.y);
+        randomSpawnPosition.z = 0;
 
-        return new Vector3(x, y);
+        return snakeBounds.Contains(randomSpawnPosition) ? RandomSpawnPosition(snakeBounds) : randomSpawnPosition;
     }
 
-    private void SpawnFoodMassGainer(Vector2 spawnPosition)
+
+    private GameObject SpawnFoodMassGainer(Vector2 spawnPosition)
     {
         massGainer = Instantiate(FoodPrefabMassGainer, spawnPosition, Quaternion.identity);
         Destroy(massGainer, 8f);
+        return massGainer;
     }
 
-    private void SpawnFoodMassBurner(Vector2 spawnPosition)
+    private GameObject SpawnFoodMassBurner(Vector2 spawnPosition)
     {
         massBurner = Instantiate(FoodPrefabMassBurner, spawnPosition, Quaternion.identity);
         Destroy(massBurner, 8f);
+        return massBurner;
     }
 
-    public void SpawnFoodManagerPublicHandler(int snakeLength)
+    public void SpawnFoodManagerPublicHandler(List<GameObject> snakeArrayList)
     {
-        //Random.value >= 0.5f ? SpawnFoodMassGainer(RandomSpawnPosition()) : SpawnFoodMassBurner(RandomSpawnPosition());
+        Bounds snakeBound = SnakeTotalBound(snakeArrayList);
 
-        if (snakeLength > 20)
+        if (snakeArrayList.Count > 20)
         {
             if (Random.value >= 0.5f)
             {
-                SpawnFoodMassGainer(RandomSpawnPosition());
+                SpawnFoodMassGainer(RandomSpawnPosition(snakeBound));
             }
             else
             {
-                SpawnFoodMassBurner(RandomSpawnPosition());
+                SpawnFoodMassBurner(RandomSpawnPosition(snakeBound));
             }
         }
         else
         {
-            SpawnFoodMassGainer(RandomSpawnPosition());
+            SpawnFoodMassGainer(RandomSpawnPosition(snakeBound));
         }
+    }
+
+    private Bounds SnakeTotalBound(List<GameObject> snakeArrayList)
+    {
+        Bounds snakeBound = new Bounds();
+        for (int i = 0; i < snakeArrayList.Count; i++)
+            snakeBound.Encapsulate(snakeArrayList[i].GetComponent<Collider2D>().bounds);
+
+        return snakeBound;
     }
 
     //Spawn Power-ups - 3 seconds cooldown
