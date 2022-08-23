@@ -1,6 +1,7 @@
-using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class PlayerController : MonoBehaviour
 {
@@ -15,6 +16,11 @@ public class PlayerController : MonoBehaviour
     private int foodEaten;
 
     private List<GameObject> snakeBodyList;
+
+    private IEnumerator coroutine;
+    private bool stopSpawn;
+    private GameObject spawnedFoodMassGainer;
+    private GameObject spawnedFoodMassBurner;
 
     private void Awake()
     {
@@ -40,7 +46,8 @@ public class PlayerController : MonoBehaviour
 
     private void Start()
     {
-        InvokeRepeating("CallSpawnManager", 0.5f, 2f);
+        coroutine = WaitAndSpawnFood(2.5f);
+        StartCoroutine(coroutine);
     }
 
     private void Update()
@@ -55,10 +62,38 @@ public class PlayerController : MonoBehaviour
         MovePlayerFixedUpdate();
     }
 
-    //call spawnManager at fixed time interval
-    private void CallSpawnManager()
+    IEnumerator WaitAndSpawnFood(float waitTime)
     {
-        SpawnManager.SingletonInstance.SpawnFoodPublicHandler(snakeBodyList);
+        while(stopSpawn != true)
+        {
+            SpawnFoodConditional();
+            yield return new WaitForSecondsRealtime(waitTime);
+        }
+    }
+
+    private void SpawnFoodConditional()
+    {
+        Bounds snakeBound = SnakeTotalBound(snakeBodyList);
+
+        if(snakeBodyList.Count > 20)
+        {
+            if(Random.value > 0.5f)
+            {
+                spawnedFoodMassGainer = SpawnManager.SingletonInstance.SpawnFoodMassGainer(snakeBound);
+            } else
+            {
+                spawnedFoodMassBurner = SpawnManager.SingletonInstance.SpawnFoodMassBurner(snakeBound);
+            }
+        }
+    }
+
+    private Bounds SnakeTotalBound(List<GameObject> snakeArrayList)
+    {
+        Bounds snakeBound = new Bounds();
+        for (int i = 0; i < snakeArrayList.Count; i++)
+            snakeBound.Encapsulate(snakeArrayList[i].GetComponent<Collider2D>().bounds);
+
+        return snakeBound;
     }
 
     private void MovePlayerFixedUpdate()
@@ -118,7 +153,6 @@ public class PlayerController : MonoBehaviour
         transform.position = position;
     }
 
-
     private void ScreenWrappingOnYAxis()
     {
         Vector3 position = transform.position;
@@ -159,7 +193,6 @@ public class PlayerController : MonoBehaviour
     }
 
     // top-down feel = -90, 180, 90, 0
-
     // ?sideways feel = 0, 90, 0, 90
 
     private void SetupTransformViaDirection()
@@ -202,18 +235,24 @@ public class PlayerController : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if(collision.CompareTag("FoodMassGainer"))
+        if(collision.gameObject.Equals(spawnedFoodMassGainer))
         {
             foodEaten++;
             GrowSnake();
         }
-        if (collision.CompareTag("PlayerBody"))
-            Debug.Log("Touched Yourself!");
 
-        if(collision.CompareTag("FoodMassBurner"))
+        if (collision.gameObject.Equals(spawnedFoodMassBurner))
         {
             ReduceSnakeSize();
         }
+
+        if (collision.CompareTag("PlayerBody"))
+            ReloadLevel();
+    }
+
+    private void ReloadLevel()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
     private void ReduceSnakeSize()

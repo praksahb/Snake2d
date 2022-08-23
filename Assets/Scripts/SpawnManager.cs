@@ -78,40 +78,55 @@ public class SpawnManager : MonoBehaviour
         return snakeBounds.Contains(randomSpawnPosition) ? RandomSpawnPosition(snakeBounds) : randomSpawnPosition;
     }
 
-    private void SpawnFoodMassGainer(Vector2 spawnPosition)
+    private GameObject SpawnFoodMassGainer(Vector2 spawnPosition)
     {
         massGainer = Instantiate(FoodPrefabMassGainer, spawnPosition, Quaternion.identity);
         Destroy(massGainer, 8f);
+        return massGainer;
     }
 
-    private void SpawnFoodMassBurner(Vector2 spawnPosition)
+    private GameObject SpawnFoodMassBurner(Vector2 spawnPosition)
     {
         massBurner = Instantiate(FoodPrefabMassBurner, spawnPosition, Quaternion.identity);
         Destroy(massBurner, 8f);
+        return massBurner;
     }
 
-    public void SpawnFoodPublicHandler(List<GameObject> snakeArrayList)
+    /* 
+     * Public methods for Food Spawner
+     */
+
+    //public GameObject SpawnFoodPublicHandler(List<GameObject> snakeArrayList)
+    //{
+    //    Bounds snakeBound = SnakeTotalBound(snakeArrayList);
+
+    //    if (snakeArrayList.Count > 20)
+    //    {
+    //        if (Random.value >= 0.5f)
+    //        {
+    //           return SpawnFoodMassGainer(RandomSpawnPosition(snakeBound));
+    //        }
+    //        else
+    //        {
+    //           return SpawnFoodMassBurner(RandomSpawnPosition(snakeBound));
+    //        }
+    //    }
+    //    else
+    //    {
+    //        return SpawnFoodMassGainer(RandomSpawnPosition(snakeBound));
+    //    }
+    //}
+
+    public GameObject SpawnFoodMassGainer(Bounds snakeBound)
     {
-        Bounds snakeBound = SnakeTotalBound(snakeArrayList);
-
-        if (snakeArrayList.Count > 20)
-        {
-            if (Random.value >= 0.5f)
-            {
-                SpawnFoodMassGainer(RandomSpawnPosition(snakeBound));
-            }
-            else
-            {
-                SpawnFoodMassBurner(RandomSpawnPosition(snakeBound));
-            }
-        }
-        else
-        {
-            SpawnFoodMassGainer(RandomSpawnPosition(snakeBound));
-        }
+        return SpawnFoodMassGainer(RandomSpawnPosition(snakeBound));
+    }
+    public GameObject SpawnFoodMassBurner(Bounds snakeBound)
+    {
+        return SpawnFoodMassBurner(RandomSpawnPosition(snakeBound));
     }
 
-    private Bounds SnakeTotalBound(List<GameObject> snakeArrayList)
+    public Bounds SnakeTotalBound(List<GameObject> snakeArrayList)
     {
         Bounds snakeBound = new Bounds();
         for (int i = 0; i < snakeArrayList.Count; i++)
