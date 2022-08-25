@@ -9,10 +9,6 @@ public class SpawnManager : MonoBehaviour
     private GameObject massGainer;
     private GameObject massBurner;
 
-    private GameObject shieldPowerup;
-    private GameObject scorePowerup;
-    private GameObject speedPowerup;
-
     private float shieldCooldownTimer;
     private float scoreCooldownTimer;
     private float speedCooldownTimer;
@@ -25,9 +21,8 @@ public class SpawnManager : MonoBehaviour
     public GameObject SpeedPrefabPowerup;
 
     public BoxCollider2D SpawnArea;
+
     public int powerupCooldownTime = 3;
-
-
 
     private void Awake()
     {
@@ -41,17 +36,7 @@ public class SpawnManager : MonoBehaviour
 
     private void Update()
     {
-        PowerupCooldownTimer(shieldCooldownTimer);
-        PowerupCooldownTimer(scoreCooldownTimer);
-        PowerupCooldownTimer(speedCooldownTimer);
-    }
-
-    private void PowerupCooldownTimer(float cooldownTimer)
-    {
-        if (cooldownTimer > 0)
-        {
-            cooldownTimer -= Time.deltaTime;
-        }
+    
     }
 
     private void CreateOrCheckSingleton()
@@ -126,58 +111,76 @@ public class SpawnManager : MonoBehaviour
         return SpawnFoodMassBurner(RandomSpawnPosition(snakeBound));
     }
 
-    public Bounds SnakeTotalBound(List<GameObject> snakeArrayList)
-    {
-        Bounds snakeBound = new Bounds();
-        for (int i = 0; i < snakeArrayList.Count; i++)
-            snakeBound.Encapsulate(snakeArrayList[i].GetComponent<Collider2D>().bounds);
+    //private Bounds SnakeTotalBound(List<GameObject> snakeArrayList)
+    //{
+    //    Bounds snakeBound = new Bounds();
+    //    for (int i = 0; i < snakeArrayList.Count; i++)
+    //        snakeBound.Encapsulate(snakeArrayList[i].GetComponent<Collider2D>().bounds);
 
-        return snakeBound;
-    }
+    //    return snakeBound;
+    //}
 
     //Spawn Power-ups - 3 seconds cooldown
     // Shield
     // Score Boost
     // Speed Boost
 
-    private void SpawnPowerup(Vector2 spawnPosi, GameObject powerUp, GameObject powerUpPrefab)
+    private GameObject SpawnPowerup(Vector2 spawnPosi, GameObject powerUpPrefab)
     {
-        powerUp = Instantiate(powerUpPrefab, spawnPosi, Quaternion.identity);
+        GameObject powerUp = Instantiate(powerUpPrefab, spawnPosi, Quaternion.identity);
         Destroy(powerUp, 8f);
+        return powerUp;
     }
 
-    public void SpawnPowerUpPublicHandler(List<GameObject> snakeListArray)
+    /* Public Handlers - Power ups
+     */
+
+    public GameObject PowerupShieldBoost(Bounds snakeBound)
     {
-        Bounds snakeBound = SnakeTotalBound(snakeListArray);
-        int randomInt = Random.Range(0, 2);
-        switch (randomInt)
-        {
-            case 0:
-                //shield
-                if(shieldCooldownTimer <= 0)
-                {
-                    SpawnPowerup(RandomSpawnPosition(snakeBound), shieldPowerup, ShieldPrefabPowerup);
-                    shieldCooldownTimer = powerupCooldownTime;
-                }
-                break;
-
-            case 1:
-                //score
-                if (scoreCooldownTimer <= 0)
-                {
-                    SpawnPowerup(RandomSpawnPosition(snakeBound), scorePowerup, ScorePrefabPowerup);
-                    scoreCooldownTimer = powerupCooldownTime;
-                }
-                break;
-
-            case 2:
-                //speed
-                if (speedCooldownTimer <= 0)
-                {
-                    SpawnPowerup(RandomSpawnPosition(snakeBound), speedPowerup, SpeedPrefabPowerup);
-                    speedCooldownTimer = powerupCooldownTime;
-                }
-                break;
-        }
+        return SpawnPowerup(RandomSpawnPosition(snakeBound), ShieldPrefabPowerup);
     }
+
+    public GameObject PowerupScoreBoost(Bounds snakeBound)
+    {
+        return SpawnPowerup(RandomSpawnPosition(snakeBound), ScorePrefabPowerup);
+    }
+    public GameObject PowerupSpeedBoost(Bounds snakeBound)
+    {
+        return SpawnPowerup(RandomSpawnPosition(snakeBound), SpeedPrefabPowerup);
+    }
+
+    //public void SpawnPowerUpPublicHandler(List<GameObject> snakeListArray)
+    //{
+    //    Bounds snakeBound = SnakeTotalBound(snakeListArray);
+    //    int randomInt = Random.Range(0, 2);
+    //    switch (randomInt)
+    //    {
+    //        case 0:
+    //            //shield
+    //            if(shieldCooldownTimer <= 0)
+    //            {
+    //                SpawnPowerup(RandomSpawnPosition(snakeBound), shieldPowerup, ShieldPrefabPowerup);
+    //                shieldCooldownTimer = powerupCooldownTime;
+    //            }
+    //            break;
+
+    //        case 1:
+    //            //score
+    //            if (scoreCooldownTimer <= 0)
+    //            {
+    //                SpawnPowerup(RandomSpawnPosition(snakeBound), scorePowerup, ScorePrefabPowerup);
+    //                scoreCooldownTimer = powerupCooldownTime;
+    //            }
+    //            break;
+
+    //        case 2:
+    //            //speed
+    //            if (speedCooldownTimer <= 0)
+    //            {
+    //                SpawnPowerup(RandomSpawnPosition(snakeBound), speedPowerup, SpeedPrefabPowerup);
+    //                speedCooldownTimer = powerupCooldownTime;
+    //            }
+    //            break;
+    //    }
+    //}
 }
