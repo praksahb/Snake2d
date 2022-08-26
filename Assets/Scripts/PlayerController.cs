@@ -6,10 +6,14 @@ public class PlayerController : MonoBehaviour
 {
     public float MoveSpeed;
     public float MoveSpeedBoosted = 1.25f;
+    public float powerUpTimer = 4f;
+    //public float flexibleCooldownTimer = 3f;
+    public int scoreIncrementer = 5;
+    public int scoreDecrementer = 4;
+
+    public ScoreController scoreController;
     public GameObject snakeBodyPrefab;
     public BoxCollider2D borderWrappingCollider;
-    public float powerUpTimer = 4f;
-    public float flexibleCooldownTimer = 3f;
 
     private Rigidbody2D snakeRigidBody;
     private Vector3 MoveDirectionVector;
@@ -22,10 +26,12 @@ public class PlayerController : MonoBehaviour
     private List<GameObject> snakeBodyList;
 
     private bool IsShieldOn;
-    private bool IsSpeedBoosted;
+    private bool IsSpeedBoostOn;
+    private bool IsScoreBoostOn = false;
 
     private float shieldPowerUpTimer;
-    private float SpeedPowerupTimer;
+    private float speedPowerupTimer;
+    private float scoreBoostTimer;
 
     private enum Direction
     {
@@ -49,7 +55,6 @@ public class PlayerController : MonoBehaviour
     }
     private void FixedUpdate()
     {
-        //physics
         MovePlayerFixedUpdate();
     }
 
@@ -72,9 +77,15 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    /* Private Update - Main functions */
+    private void MovePlayerUpdate()
+    {
+        SetupDirectionViaInputProvided();
+        GetInputMovement();
+        BorderWrapAround();
+    }
 
     // Private Update - helper functions
-
     private void UpdateHelper()
     {
         //input mapping
@@ -83,22 +94,21 @@ public class PlayerController : MonoBehaviour
         // power up timers
         if (IsShieldOn)
         {
-            ShieldTimer();
+            ShieldBoostTimer();
         }
 
-        if (IsSpeedBoosted)
+        if (IsScoreBoostOn)
         {
-            SpeedTimer();
+            ScoreBoostTimer();
+        }
+
+        if (IsSpeedBoostOn)
+        {
+            SpeedBoostTimer();
         }
     }
-    private void MovePlayerUpdate()
-    {
-        SetupDirectionViaInputProvided();
-        GetInputMovement();
-        BorderWrapAround();
-    }
 
-    private void ShieldTimer()
+    private void ShieldBoostTimer()
     {
         if (shieldPowerUpTimer > 0)
         {
@@ -107,22 +117,37 @@ public class PlayerController : MonoBehaviour
         else
         {
             IsShieldOn = false;
+            //reset timer to 0 
             shieldPowerUpTimer = 0;
         }
     }
 
-    private void SpeedTimer()
+    private void ScoreBoostTimer()
     {
-        if (SpeedPowerupTimer > 0)
+        if (scoreBoostTimer > 0)
         {
-            SpeedPowerupTimer -= Time.deltaTime;
+            scoreBoostTimer -= Time.deltaTime;
         }
         else
         {
-            IsSpeedBoosted = false;
+            IsScoreBoostOn = false;
+            scoreIncrementer /= 2;
+            scoreDecrementer *= 2;
+            scoreBoostTimer = 0;
+        }
+    }
+
+    private void SpeedBoostTimer()
+    {
+        if (speedPowerupTimer > 0)
+        {
+            speedPowerupTimer -= Time.deltaTime;
+        }
+        else
+        {
+            IsSpeedBoostOn = false;
             MoveSpeed = originalMoveSpeed;
-            //reset timer to 0 
-            SpeedPowerupTimer = 0;
+            speedPowerupTimer = 0;
         }
     }
 
@@ -267,6 +292,8 @@ public class PlayerController : MonoBehaviour
     /* * * * Public Helper functions for ColliderController */
     public void ReduceSnakeSize()
     {
+        scoreController.DecrementScore(scoreDecrementer);
+
         for (int i = 0; i < 5; i++)
         {
             GameObject snakeBodyObject = snakeBodyList[snakeBodyList.Count - 1];
@@ -279,6 +306,8 @@ public class PlayerController : MonoBehaviour
 
     public void GrowSnake()
     {
+        scoreController.IncrementScore(scoreIncrementer);
+
         for (int i = 0; i < 5; i++)
         {
             Vector3 position = GrowSnakeDeltaPosition();
@@ -293,11 +322,19 @@ public class PlayerController : MonoBehaviour
         shieldPowerUpTimer = powerUpTimer;
     }
 
+    public void StartScoreBoost()
+    {
+        IsScoreBoostOn = true;
+        scoreIncrementer *= 2;
+        scoreDecrementer /= 2;
+        scoreBoostTimer = powerUpTimer * 2;
+    }
+
     public void StartSpeedBoost()
     {
-        IsSpeedBoosted = true;
+        IsSpeedBoostOn = true;
         MoveSpeed = MoveSpeedBoosted;
-        SpeedPowerupTimer = powerUpTimer * 2;
+        speedPowerupTimer = powerUpTimer * 2;
     }
 
     /* * * * Public Helper functions for SpawnManager */
