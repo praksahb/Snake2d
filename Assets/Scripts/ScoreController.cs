@@ -1,5 +1,5 @@
-using UnityEngine;
 using TMPro;
+using UnityEngine;
 
 public class ScoreController : MonoBehaviour
 {
@@ -11,15 +11,9 @@ public class ScoreController : MonoBehaviour
         scoreTracker = gameObject.GetComponent<TextMeshProUGUI>();
     }
 
-    public void IncrementScore(int value)
+    public void ScoreUpdater(int value)
     {
         score += value;
-        UpdateScore();
-    }
-
-    public void DecrementScore(int value)
-    {
-        score -= value;
         UpdateScore();
     }
 

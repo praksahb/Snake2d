@@ -21,6 +21,8 @@ public class SpawnManager : MonoBehaviour
 
     public int MinSnakeLength;
     public float spawnFoodTimer = 3f;
+    public float destroyMassGainerTimer = 8f;
+    public float destroyMassBurnerTimer = 6f;
     public float spawnPowerupTimer = 5f;
     public float cooldownTimer = 3f;
 
@@ -93,10 +95,10 @@ public class SpawnManager : MonoBehaviour
         return snakeBounds.Contains(randomSpawnPosition) ? RandomSpawnPosition(snakeBounds) : randomSpawnPosition;
     }
 
-    private void SpawnFood(Vector2 spawnPosition, GameObject foodPrefab)
+    private void SpawnFood(Vector2 spawnPosition, GameObject foodPrefab, float destroyTime)
     {
         GameObject food = Instantiate(foodPrefab, spawnPosition, Quaternion.identity);
-        Destroy(food, 8f);
+        Destroy(food, destroyTime);
     }
     private void SpawnPowerup(Vector2 spawnPosi, GameObject powerUpPrefab)
     {
@@ -116,17 +118,17 @@ public class SpawnManager : MonoBehaviour
             // float ProbabilityArea4MassGainer = 0.6f;
             if (Random.value >= 0.4f)
             {
-                SpawnFood(RandomSpawnPosition(snakeBound), FoodPrefabMassGainer);
+                SpawnFood(RandomSpawnPosition(snakeBound), FoodPrefabMassGainer, destroyMassGainerTimer);
             }
             // ProbabilityArea4MassBurner = any value less than 0.4f
             else
             {
-                SpawnFood(RandomSpawnPosition(snakeBound), FoodPrefabMassBurner);
+                SpawnFood(RandomSpawnPosition(snakeBound), FoodPrefabMassBurner, destroyMassBurnerTimer);
             }
         }
         else
         {
-            SpawnFood(RandomSpawnPosition(snakeBound), FoodPrefabMassGainer);
+            SpawnFood(RandomSpawnPosition(snakeBound), FoodPrefabMassGainer, destroyMassGainerTimer);
         }
     }
 
