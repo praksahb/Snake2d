@@ -30,6 +30,7 @@ public class PlayerController : MonoBehaviour
     private float shieldPowerUpTimer;
     private float speedPowerupTimer;
     private float scoreBoostTimer;
+    private bool IsPaused;
 
     private enum Direction
     {
@@ -50,7 +51,26 @@ public class PlayerController : MonoBehaviour
     private void Update()
     {
         UpdateHelper();
+
+        if(Input.GetKeyDown(KeyCode.Escape))
+        {
+            IsPaused = !IsPaused;
+            TogglePauseResume();
+        }
     }
+
+    private void TogglePauseResume()
+    {
+        if(IsPaused)
+        {
+            Time.timeScale = 0;
+        }
+        if(!IsPaused)
+        {
+            Time.timeScale = 1;
+        }
+    }
+
     private void FixedUpdate()
     {
         MovePlayerFixedUpdate();
