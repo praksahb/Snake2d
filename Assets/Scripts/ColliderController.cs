@@ -8,11 +8,6 @@ public class ColliderController : MonoBehaviour
     public GameObject scoreBoost;
     public GameObject speedBoost;
 
-    private void Awake()
-    {
-     
-    }
-
     private void OnTriggerEnter2D(Collider2D collision)
     {
         PlayerController playerController = collision.gameObject.GetComponent<PlayerController>();
@@ -22,14 +17,12 @@ public class ColliderController : MonoBehaviour
         /* Food Trigger checks */
             if (gameObject == massGainer && playerController)
             {
-                //Shift collision logic from playerController here
                 playerController.GrowSnake();
                 gameObject.SetActive(false);
             }
 
             if (gameObject == massBurner)
             {
-                //Shift collision logic from playerController here
                 playerController.ReduceSnakeSize();
                 gameObject.SetActive(false);
             }
@@ -43,7 +36,7 @@ public class ColliderController : MonoBehaviour
             // score boost
             if(gameObject == scoreBoost)
             {
-                //playerController.StartScoreBoost();
+                playerController.StartScoreBoost();
                 gameObject.SetActive(false);
             }
 

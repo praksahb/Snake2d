@@ -139,7 +139,7 @@ public class SpawnManager : MonoBehaviour
         int randomInt = Random.Range(0, 2);
         //editing here
         // using 0 till other power ups are made
-        switch (2)
+        switch (1)
         {
             case 0:
                 //shield
