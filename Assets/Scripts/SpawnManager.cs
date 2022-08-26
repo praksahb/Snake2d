@@ -141,13 +141,7 @@ public class SpawnManager : MonoBehaviour
     public void SpawnPowerUpPublicHandler(Bounds snakeBound)
     {
         int randomInt = Random.Range(0, 2);
-<<<<<<< Updated upstream
-        //editing here
-        // using 0 till other power ups are made
-        switch (2)
-=======
         switch (randomInt)
->>>>>>> Stashed changes
         {
             case 0:
                 //shield
