@@ -1,15 +1,12 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 public class SpawnManager : MonoBehaviour
 {
     public static SpawnManager SingletonInstance { get; private set; }
 
-    public int MinSnakeLength;
-
-    //private float shieldCooldownTimer;
-    //private float scoreCooldownTimer;
-    //private float speedCooldownTimer;
+    private float SpawnFoodTimer;
+    private float SpawnPowerupTimer;
+    private float CooldownTimer;
 
     public GameObject FoodPrefabMassGainer;
     public GameObject FoodPrefabMassBurner;
@@ -22,9 +19,11 @@ public class SpawnManager : MonoBehaviour
 
     public BoxCollider2D SpawnArea;
 
-    //public int powerupCooldownTime = 3;
+    public int MinSnakeLength;
     public float spawnFoodTimer = 3f;
     public float spawnPowerupTimer = 5f;
+    public float cooldownTimer = 3f;
+
     private void Awake()
     {
         CreateOrCheckSingleton();
@@ -32,6 +31,9 @@ public class SpawnManager : MonoBehaviour
 
     private void Start()
     {
+        SpawnFoodTimer = spawnFoodTimer;
+        SpawnPowerupTimer = spawnPowerupTimer;
+        CooldownTimer = 0;
     }
 
     private void Update()
@@ -54,26 +56,27 @@ public class SpawnManager : MonoBehaviour
 
     private void SpawnFoodRepeating()
     {
-        if (spawnFoodTimer > 0)
+        if (SpawnFoodTimer > 0)
         {
-            spawnFoodTimer -= Time.deltaTime;
+            SpawnFoodTimer -= Time.deltaTime;
         }
         else
         {
             SpawnFoodPublicHandler(playerController.GetSnakeTotalBound());
-            spawnFoodTimer = 3f;
+            SpawnFoodTimer = spawnFoodTimer;
         }
     }
     private void SpawnPowerupRepeating()
     {
-        if (spawnPowerupTimer > 0)
-        {
-            spawnPowerupTimer -= Time.deltaTime;
-        }
+        if (SpawnPowerupTimer > 0)
+            SpawnPowerupTimer -= Time.deltaTime;
+        else if (CooldownTimer > 0)
+            CooldownTimer -= Time.deltaTime;
         else
         {
             SpawnPowerUpPublicHandler(playerController.GetSnakeTotalBound());
-            spawnPowerupTimer = 5f;
+            SpawnPowerupTimer = spawnPowerupTimer;
+            CooldownTimer = cooldownTimer;
         }
     }
 
@@ -110,11 +113,12 @@ public class SpawnManager : MonoBehaviour
         if (playerController.GetSnakeLength() > MinSnakeLength)
         {
             // Random.value returns float value from 0 till 1
-            // float HalfProbabilityArea = 0.5f;
-            if (Random.value >= 0.5f)
+            // float ProbabilityArea4MassGainer = 0.6f;
+            if (Random.value >= 0.4f)
             {
                 SpawnFood(RandomSpawnPosition(snakeBound), FoodPrefabMassGainer);
             }
+            // ProbabilityArea4MassBurner = any value less than 0.4f
             else
             {
                 SpawnFood(RandomSpawnPosition(snakeBound), FoodPrefabMassBurner);
@@ -137,9 +141,7 @@ public class SpawnManager : MonoBehaviour
     public void SpawnPowerUpPublicHandler(Bounds snakeBound)
     {
         int randomInt = Random.Range(0, 2);
-        //editing here
-        // using 0 till other power ups are made
-        switch (1)
+        switch (randomInt)
         {
             case 0:
                 //shield

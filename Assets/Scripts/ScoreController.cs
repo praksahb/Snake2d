@@ -8,7 +8,6 @@ public class ScoreController : MonoBehaviour
 
     private void Awake()
     {
-        Debug.Log(score);
         scoreTracker = gameObject.GetComponent<TextMeshProUGUI>();
     }
 
