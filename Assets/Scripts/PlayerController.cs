@@ -7,19 +7,17 @@ public class PlayerController : MonoBehaviour
     public float MoveSpeed;
     public float MoveSpeedBoosted = 1.25f;
     public float powerUpTimer = 4f;
-    //public float flexibleCooldownTimer = 3f;
     public int scoreIncrementer = 5;
-    public int scoreDecrementer = 4;
+    public int scoreDecrementerNegativeValue = -4;
 
     public ScoreController scoreController;
     public GameObject snakeBodyPrefab;
-    public BoxCollider2D borderWrappingCollider;
+    public BoxCollider2D screenWrappingCollider;
 
     private Rigidbody2D snakeRigidBody;
     private Vector3 MoveDirectionVector;
     private Direction prevDirection = Direction.down, currentDirection = Direction.down;
     private float horizontal, vertical;
-    //private int foodEaten;
 
     private float originalMoveSpeed;
 
@@ -66,15 +64,13 @@ public class PlayerController : MonoBehaviour
         {
             this.gameObject
         };
-        InitializeSnakeBodyList(1);
+        InitializeSnakeBodyList();
     }
 
-    private void InitializeSnakeBodyList(int minimumSnakeLength)
+    private void InitializeSnakeBodyList()
     {
-        for (int i = 0; i < minimumSnakeLength; i++)
-        {
+        //grows by 5 - for loop creates 5 snake bodies and adds to ListArray
             GrowSnake("Initial");
-        }
     }
 
     /* Private Update - Main functions */
@@ -132,7 +128,7 @@ public class PlayerController : MonoBehaviour
         {
             IsScoreBoostOn = false;
             scoreIncrementer /= 2;
-            scoreDecrementer *= 2;
+            scoreDecrementerNegativeValue *= 2;
             scoreBoostTimer = 0;
         }
     }
@@ -292,7 +288,7 @@ public class PlayerController : MonoBehaviour
     /* * * * Public Helper functions for ColliderController */
     public void ReduceSnakeSize()
     {
-        scoreController.DecrementScore(scoreDecrementer);
+        scoreController.ScoreUpdater(scoreDecrementerNegativeValue);
 
         for (int i = 0; i < 5; i++)
         {
@@ -306,7 +302,7 @@ public class PlayerController : MonoBehaviour
 
     public void GrowSnake()
     {
-        scoreController.IncrementScore(scoreIncrementer);
+        scoreController.ScoreUpdater(scoreIncrementer);
 
         for (int i = 0; i < 5; i++)
         {
@@ -326,7 +322,7 @@ public class PlayerController : MonoBehaviour
     {
         IsScoreBoostOn = true;
         scoreIncrementer *= 2;
-        scoreDecrementer /= 2;
+        scoreDecrementerNegativeValue /= 2;
         scoreBoostTimer = powerUpTimer * 2;
     }
 
@@ -365,7 +361,7 @@ public class PlayerController : MonoBehaviour
 
     private void BorderWrapAround()
     {
-        Bounds bounds = borderWrappingCollider.bounds;
+        Bounds bounds = screenWrappingCollider.bounds;
 
         if (transform.position.x <= bounds.min.x && currentDirection == Direction.left)
         {
