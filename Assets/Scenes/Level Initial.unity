@@ -325,8 +325,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   MoveSpeed: 0.5
+  MoveSpeedBoosted: 1.2
   snakeBodyPrefab: {fileID: 479711895100530717, guid: 4f9ae6536ef5dc2479bf02b4e6da803c, type: 3}
-  BorderWrappingCollider: {fileID: 1816629706}
+  borderWrappingCollider: {fileID: 1816629706}
+  powerUpTimer: 4
+  flexibleCooldownTimer: 3
 --- !u!212 &1359619193
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -525,13 +528,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b278eb44d74a0eb4785f0abc0970a183, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  MinSnakeLength: 20
   FoodPrefabMassGainer: {fileID: 7788186108107779959, guid: 032b106869d2c7549b71c41b25251177, type: 3}
   FoodPrefabMassBurner: {fileID: 7788186108107779959, guid: f2c44675645813f40b28ed2a29dcbb6d, type: 3}
   ShieldPrefabPowerup: {fileID: 9097118193217640809, guid: c618baaafba06754ea15fa021091c01d, type: 3}
   ScorePrefabPowerup: {fileID: 7788186108107779959, guid: 032b106869d2c7549b71c41b25251177, type: 3}
-  SpeedPrefabPowerup: {fileID: 7788186108107779959, guid: f2c44675645813f40b28ed2a29dcbb6d, type: 3}
+  SpeedPrefabPowerup: {fileID: 303758979079597921, guid: fe2cef8a7fd647a479ffb8c4c77697ef, type: 3}
+  playerController: {fileID: 1359619192}
   SpawnArea: {fileID: 1274458324}
-  powerupCooldownTime: 3
+  spawnFoodTimer: 3
+  spawnPowerupTimer: 8
 --- !u!4 &2020449364
 Transform:
   m_ObjectHideFlags: 0

@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -6,12 +5,11 @@ public class SpawnManager : MonoBehaviour
 {
     public static SpawnManager SingletonInstance { get; private set; }
 
-    private GameObject massGainer;
-    private GameObject massBurner;
+    public int MinSnakeLength;
 
-    private float shieldCooldownTimer;
-    private float scoreCooldownTimer;
-    private float speedCooldownTimer;
+    //private float shieldCooldownTimer;
+    //private float scoreCooldownTimer;
+    //private float speedCooldownTimer;
 
     public GameObject FoodPrefabMassGainer;
     public GameObject FoodPrefabMassBurner;
@@ -20,23 +18,26 @@ public class SpawnManager : MonoBehaviour
     public GameObject ScorePrefabPowerup;
     public GameObject SpeedPrefabPowerup;
 
+    public PlayerController playerController;
+
     public BoxCollider2D SpawnArea;
 
-    public int powerupCooldownTime = 3;
-
+    //public int powerupCooldownTime = 3;
+    public float spawnFoodTimer = 3f;
+    public float spawnPowerupTimer = 5f;
     private void Awake()
     {
-        CreateOrCheckSingleton(); 
+        CreateOrCheckSingleton();
     }
-     
+
     private void Start()
     {
-        
     }
 
     private void Update()
     {
-    
+        SpawnFoodRepeating();
+        SpawnPowerupRepeating();
     }
 
     private void CreateOrCheckSingleton()
@@ -51,7 +52,33 @@ public class SpawnManager : MonoBehaviour
         }
     }
 
-    // ?recursive call
+    private void SpawnFoodRepeating()
+    {
+        if (spawnFoodTimer > 0)
+        {
+            spawnFoodTimer -= Time.deltaTime;
+        }
+        else
+        {
+            SpawnFoodPublicHandler(playerController.GetSnakeTotalBound());
+            spawnFoodTimer = 3f;
+        }
+    }
+    private void SpawnPowerupRepeating()
+    {
+        if (spawnPowerupTimer > 0)
+        {
+            spawnPowerupTimer -= Time.deltaTime;
+        }
+        else
+        {
+            SpawnPowerUpPublicHandler(playerController.GetSnakeTotalBound());
+            spawnPowerupTimer = 5f;
+        }
+    }
+
+    // Always return a random x,y position values in SpawnArea 
+    // and tries not to spawn on snake body position
     private Vector3 RandomSpawnPosition(Bounds snakeBounds)
     {
         Bounds bounds = SpawnArea.bounds;
@@ -63,124 +90,74 @@ public class SpawnManager : MonoBehaviour
         return snakeBounds.Contains(randomSpawnPosition) ? RandomSpawnPosition(snakeBounds) : randomSpawnPosition;
     }
 
-    private GameObject SpawnFoodMassGainer(Vector2 spawnPosition)
+    private void SpawnFood(Vector2 spawnPosition, GameObject foodPrefab)
     {
-        massGainer = Instantiate(FoodPrefabMassGainer, spawnPosition, Quaternion.identity);
-        Destroy(massGainer, 8f);
-        return massGainer;
+        GameObject food = Instantiate(foodPrefab, spawnPosition, Quaternion.identity);
+        Destroy(food, 8f);
     }
-
-    private GameObject SpawnFoodMassBurner(Vector2 spawnPosition)
+    private void SpawnPowerup(Vector2 spawnPosi, GameObject powerUpPrefab)
     {
-        massBurner = Instantiate(FoodPrefabMassBurner, spawnPosition, Quaternion.identity);
-        Destroy(massBurner, 8f);
-        return massBurner;
+        GameObject powerUp = Instantiate(powerUpPrefab, spawnPosi, Quaternion.identity);
+        Destroy(powerUp, 8f);
     }
 
     /* 
      * Public methods for Food Spawner
      */
 
-    //public GameObject SpawnFoodPublicHandler(List<GameObject> snakeArrayList)
-    //{
-    //    Bounds snakeBound = SnakeTotalBound(snakeArrayList);
-
-    //    if (snakeArrayList.Count > 20)
-    //    {
-    //        if (Random.value >= 0.5f)
-    //        {
-    //           return SpawnFoodMassGainer(RandomSpawnPosition(snakeBound));
-    //        }
-    //        else
-    //        {
-    //           return SpawnFoodMassBurner(RandomSpawnPosition(snakeBound));
-    //        }
-    //    }
-    //    else
-    //    {
-    //        return SpawnFoodMassGainer(RandomSpawnPosition(snakeBound));
-    //    }
-    //}
-
-    public GameObject SpawnFoodMassGainer(Bounds snakeBound)
+    public void SpawnFoodPublicHandler(Bounds snakeBound)
     {
-        return SpawnFoodMassGainer(RandomSpawnPosition(snakeBound));
+        if (playerController.GetSnakeLength() > MinSnakeLength)
+        {
+            // Random.value returns float value from 0 till 1
+            // float HalfProbabilityArea = 0.5f;
+            if (Random.value >= 0.5f)
+            {
+                SpawnFood(RandomSpawnPosition(snakeBound), FoodPrefabMassGainer);
+            }
+            else
+            {
+                SpawnFood(RandomSpawnPosition(snakeBound), FoodPrefabMassBurner);
+            }
+        }
+        else
+        {
+            SpawnFood(RandomSpawnPosition(snakeBound), FoodPrefabMassGainer);
+        }
     }
-    public GameObject SpawnFoodMassBurner(Bounds snakeBound)
-    {
-        return SpawnFoodMassBurner(RandomSpawnPosition(snakeBound));
-    }
-
-    //private Bounds SnakeTotalBound(List<GameObject> snakeArrayList)
-    //{
-    //    Bounds snakeBound = new Bounds();
-    //    for (int i = 0; i < snakeArrayList.Count; i++)
-    //        snakeBound.Encapsulate(snakeArrayList[i].GetComponent<Collider2D>().bounds);
-
-    //    return snakeBound;
-    //}
 
     //Spawn Power-ups - 3 seconds cooldown
     // Shield
     // Score Boost
     // Speed Boost
 
-    private GameObject SpawnPowerup(Vector2 spawnPosi, GameObject powerUpPrefab)
-    {
-        GameObject powerUp = Instantiate(powerUpPrefab, spawnPosi, Quaternion.identity);
-        Destroy(powerUp, 8f);
-        return powerUp;
-    }
-
     /* Public Handlers - Power ups
      */
 
-    public GameObject PowerupShieldBoost(Bounds snakeBound)
+    public void SpawnPowerUpPublicHandler(Bounds snakeBound)
     {
-        return SpawnPowerup(RandomSpawnPosition(snakeBound), ShieldPrefabPowerup);
+        int randomInt = Random.Range(0, 2);
+        //editing here
+        // using 0 till other power ups are made
+        switch (2)
+        {
+            case 0:
+                //shield
+                SpawnPowerup(RandomSpawnPosition(snakeBound), ShieldPrefabPowerup);
+                //shieldCooldownTimer = powerupCooldownTime;
+                break;
+
+            case 1:
+                //score
+                SpawnPowerup(RandomSpawnPosition(snakeBound), ScorePrefabPowerup);
+                //scoreCooldownTimer = powerupCooldownTime;
+                break;
+
+            case 2:
+                //speed
+                SpawnPowerup(RandomSpawnPosition(snakeBound), SpeedPrefabPowerup);
+                //speedCooldownTimer = powerupCooldownTime;
+                break;
+        }
     }
-
-    public GameObject PowerupScoreBoost(Bounds snakeBound)
-    {
-        return SpawnPowerup(RandomSpawnPosition(snakeBound), ScorePrefabPowerup);
-    }
-    public GameObject PowerupSpeedBoost(Bounds snakeBound)
-    {
-        return SpawnPowerup(RandomSpawnPosition(snakeBound), SpeedPrefabPowerup);
-    }
-
-    //public void SpawnPowerUpPublicHandler(List<GameObject> snakeListArray)
-    //{
-    //    Bounds snakeBound = SnakeTotalBound(snakeListArray);
-    //    int randomInt = Random.Range(0, 2);
-    //    switch (randomInt)
-    //    {
-    //        case 0:
-    //            //shield
-    //            if(shieldCooldownTimer <= 0)
-    //            {
-    //                SpawnPowerup(RandomSpawnPosition(snakeBound), shieldPowerup, ShieldPrefabPowerup);
-    //                shieldCooldownTimer = powerupCooldownTime;
-    //            }
-    //            break;
-
-    //        case 1:
-    //            //score
-    //            if (scoreCooldownTimer <= 0)
-    //            {
-    //                SpawnPowerup(RandomSpawnPosition(snakeBound), scorePowerup, ScorePrefabPowerup);
-    //                scoreCooldownTimer = powerupCooldownTime;
-    //            }
-    //            break;
-
-    //        case 2:
-    //            //speed
-    //            if (speedCooldownTimer <= 0)
-    //            {
-    //                SpawnPowerup(RandomSpawnPosition(snakeBound), speedPowerup, SpeedPrefabPowerup);
-    //                speedCooldownTimer = powerupCooldownTime;
-    //            }
-    //            break;
-    //    }
-    //}
 }

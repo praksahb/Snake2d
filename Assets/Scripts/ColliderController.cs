@@ -6,7 +6,7 @@ public class ColliderController : MonoBehaviour
     public GameObject massBurner;
     public GameObject shieldBoost;
     //public GameObject scoreBoost;
-    //public GameObject speedBoost;
+    public GameObject speedBoost;
 
 
     private void Awake()
@@ -38,6 +38,14 @@ public class ColliderController : MonoBehaviour
             if (gameObject == shieldBoost)
             {
                 playerController.StartShieldPowerup();
+                gameObject.SetActive(false);
+            }
+
+            // score boost
+
+            if(gameObject == speedBoost)
+            {
+                playerController.StartSpeedBoost();
                 gameObject.SetActive(false);
             }
         }

@@ -125,3 +125,4 @@ MonoBehaviour:
   massGainer: {fileID: 7788186108107779959, guid: 032b106869d2c7549b71c41b25251177, type: 3}
   massBurner: {fileID: 7788186108107779959, guid: f2c44675645813f40b28ed2a29dcbb6d, type: 3}
   shieldBoost: {fileID: 9097118193217640809}
+  speedBoost: {fileID: 303758979079597921, guid: fe2cef8a7fd647a479ffb8c4c77697ef, type: 3}

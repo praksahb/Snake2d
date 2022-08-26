@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -6,9 +5,10 @@ using UnityEngine.SceneManagement;
 public class PlayerController : MonoBehaviour
 {
     public float MoveSpeed;
+    public float MoveSpeedBoosted = 1.5f;
     public GameObject snakeBodyPrefab;
-    public BoxCollider2D BorderWrappingCollider;
-    public float PowerUpTimer = 4f;
+    public BoxCollider2D borderWrappingCollider;
+    public float powerUpTimer = 4f;
     public float flexibleCooldownTimer = 3f;
 
     private Rigidbody2D snakeRigidBody;
@@ -17,20 +17,15 @@ public class PlayerController : MonoBehaviour
     private float horizontal, vertical;
     //private int foodEaten;
 
+    private float originalMoveSpeed;
+
     private List<GameObject> snakeBodyList;
 
-    private IEnumerator coroutine;
-    private readonly bool stopSpawn = false;
-
-    private GameObject spawnedFoodMassGainer;
-    private GameObject spawnedFoodMassBurner;
-    private GameObject spawnedPowerupShield;
-    private GameObject spawnedPowerupScoreBoost;
-    private GameObject spawnedPowerupSpeedBoost;
-
     private bool IsShieldOn;
+    private bool IsSpeedBoosted;
+
     private float shieldPowerUpTimer;
-    private float cooldownTimer = 0;
+    private float SpeedPowerupTimer;
 
     private enum Direction
     {
@@ -46,32 +41,57 @@ public class PlayerController : MonoBehaviour
     }
     private void Start()
     {
-        coroutine = WaitAndSpawnFood(5f);
-        StartCoroutine(coroutine);
-        StartCoroutine(WaitAndSpawnPowerup());
+        originalMoveSpeed = MoveSpeed;
     }
     private void Update()
     {
         //input
         MovePlayerUpdate();
 
-        //power up timer
-        //timer for how long power up will last
-        if(IsShieldOn)
+        // power up timers
+        if (IsShieldOn)
         {
-            StartPowerupTimer();
+            ShieldTimer();
         }
 
-        //cooldown timer
-        if(cooldownTimer > 0)
+        if(IsSpeedBoosted)
         {
-            cooldownTimer -= Time.deltaTime;
+            SpeedTimer();
         }
     }
+
+    private void ShieldTimer()
+    {
+        if (shieldPowerUpTimer > 0)
+        {
+            shieldPowerUpTimer -= Time.deltaTime;
+        }
+        else
+        {
+            IsShieldOn = false;
+            shieldPowerUpTimer = 0;
+        }
+    }
+
+    private void SpeedTimer()
+    {
+        if (SpeedPowerupTimer > 0)
+        {
+            SpeedPowerupTimer -= Time.deltaTime;
+        }
+        else
+        {
+            IsSpeedBoosted = false;
+            MoveSpeed = originalMoveSpeed;
+            //reset timer to 0 
+            SpeedPowerupTimer = 0;
+        }
+    }
+
     private void FixedUpdate()
     {
         //physics
-       MovePlayerFixedUpdate();
+        MovePlayerFixedUpdate();
     }
 
     private void AwakeHelperFunctions()
@@ -79,7 +99,7 @@ public class PlayerController : MonoBehaviour
         snakeRigidBody = GetComponent<Rigidbody2D>();
         snakeBodyList = new List<GameObject>
         {
-            gameObject
+            this.gameObject
         };
         InitializeSnakeBodyList(1);
     }
@@ -90,79 +110,6 @@ public class PlayerController : MonoBehaviour
         {
             GrowSnake("Initial");
         }
-    }
-
-    IEnumerator WaitAndSpawnFood(float waitTime)
-    {
-        while(stopSpawn != true)
-        {
-            SpawnFoodConditional();
-            yield return new WaitForSecondsRealtime(waitTime);
-        }
-    }
-
-    IEnumerator WaitAndSpawnPowerup()
-    {
-        while(stopSpawn != true)
-        {
-            Debug.Log("Called");
-            Bounds snakeBound = SnakeTotalBound(snakeBodyList);
-
-            if(cooldownTimer <= 0f)
-            {
-                int randomInt = Random.Range(0, 2);
-                switch (0)
-                {
-                    case 0:
-                        //shield
-                        spawnedPowerupShield = SpawnManager.SingletonInstance.PowerupShieldBoost(snakeBound);
-                        break;
-
-                    case 1:
-                        //score
-                        spawnedPowerupScoreBoost = SpawnManager.SingletonInstance.PowerupScoreBoost(snakeBound);
-                        break;
-
-                    case 2:
-                        //speed
-                        spawnedPowerupSpeedBoost = SpawnManager.SingletonInstance.PowerupSpeedBoost(snakeBound);
-                        break;
-                }
-                yield return new WaitForSeconds(5);
-            }
-        }
-        
-    }
-
-    private void SpawnFoodConditional()
-    {
-        Bounds snakeBound = SnakeTotalBound(snakeBodyList);
-
-        if(snakeBodyList.Count > 20)
-        {
-            if(Random.value > 0.5f)
-            {
-                spawnedFoodMassGainer = SpawnManager.SingletonInstance.SpawnFoodMassGainer(snakeBound);
-            } else
-            {
-                spawnedFoodMassBurner = SpawnManager.SingletonInstance.SpawnFoodMassBurner(snakeBound);
-            }
-        } else
-        {
-            spawnedFoodMassGainer = SpawnManager.SingletonInstance.SpawnFoodMassGainer(snakeBound);
-        }
-    }
-
-    /* Gets the bounds from the colliders on the whole snake object
-     * snake position will be changing every frame
-     * coroutine will be running every 5 seconds
-     */
-    private Bounds SnakeTotalBound(List<GameObject> snakeArrayList)
-    {
-        Bounds snakeBound = new Bounds();
-        for (int i = 0; i < snakeArrayList.Count; i++)
-            snakeBound.Encapsulate(snakeArrayList[i].GetComponent<Collider2D>().bounds);
-        return snakeBound;
     }
 
     private void MovePlayerFixedUpdate()
@@ -189,12 +136,12 @@ public class PlayerController : MonoBehaviour
 
     private void BorderWrapAround()
     {
-        Bounds bounds = BorderWrappingCollider.bounds;
-                
+        Bounds bounds = borderWrappingCollider.bounds;
+
         if (transform.position.x <= bounds.min.x && currentDirection == Direction.left)
         {
             ScreenWrappingOnXAxis();
-        }       
+        }
         if (transform.position.y >= bounds.max.y && currentDirection == Direction.up)
         {
             ScreenWrappingOnYAxis();
@@ -244,8 +191,6 @@ public class PlayerController : MonoBehaviour
     {
         if (horizontal == 1 && prevDirection != Direction.left)
         {
-
-            Debug.Log("tooqeomasdin");
             prevDirection = currentDirection;
             currentDirection = Direction.right;
         }
@@ -269,8 +214,6 @@ public class PlayerController : MonoBehaviour
 
     // top-down feel = -90, 180, 90, 0
     // ?sideways feel = 0, 90, 0, 90
-
-
     /* 
      * Rotate Snake Head ie. player according to Direction 
      */
@@ -341,17 +284,11 @@ public class PlayerController : MonoBehaviour
     {
         if (collision.CompareTag("PlayerBody"))
         {
-            if(!IsShieldOn)
+            if (!IsShieldOn)
             {
                 ReloadLevel();
             }
         }
-
-        // if collision == power up 2 - score Boost
-        // ScoreBoost();
-
-        // if collision == power up 3 - speed boost
-        // BoostSpeed();
     }
 
     private void ReloadLevel()
@@ -361,7 +298,7 @@ public class PlayerController : MonoBehaviour
 
     public void ReduceSnakeSize()
     {
-        for(int i = 0; i < 5; i++)
+        for (int i = 0; i < 5; i++)
         {
             GameObject snakeBodyObject = snakeBodyList[snakeBodyList.Count - 1];
             snakeBodyList.RemoveAt(snakeBodyList.Count - 1);
@@ -373,7 +310,7 @@ public class PlayerController : MonoBehaviour
 
     public void GrowSnake()
     {
-        for(int i = 0; i < 5; i++)
+        for (int i = 0; i < 5; i++)
         {
             Vector3 position = GrowSnakeDeltaPosition();
             GameObject snakeBodyTransform = Instantiate(snakeBodyPrefab, position, Quaternion.identity);
@@ -391,9 +328,9 @@ public class PlayerController : MonoBehaviour
 
     private void GrowSnake(string value)
     {
-        if(value == "Initial")
+        if (value == "Initial")
         {
-            for(int i = 0; i < 5; i++)
+            for (int i = 0; i < 5; i++)
             {
                 Vector2 deltaPosition = new Vector2(0, 0.5f);
                 Transform prevSnake = snakeBodyList[snakeBodyList.Count - 1].transform;
@@ -409,18 +346,26 @@ public class PlayerController : MonoBehaviour
     public void StartShieldPowerup()
     {
         IsShieldOn = true;
-        shieldPowerUpTimer = PowerUpTimer;
+        shieldPowerUpTimer = powerUpTimer;
     }
 
-    private void StartPowerupTimer()
+    public void StartSpeedBoost()
     {
-        if(shieldPowerUpTimer > 0)
-        {
-            shieldPowerUpTimer -= Time.deltaTime;
-        } else
-        {
-            IsShieldOn = false;
-            cooldownTimer = flexibleCooldownTimer;
-        }
+        IsSpeedBoosted = true;
+        MoveSpeed = MoveSpeedBoosted;
+        SpeedPowerupTimer = powerUpTimer * 2;
+    }
+
+    public Bounds GetSnakeTotalBound()
+    {
+        Bounds snakeBound = new Bounds();
+        for (int i = 0; i < snakeBodyList.Count; i++)
+            snakeBound.Encapsulate(snakeBodyList[i].GetComponent<Collider2D>().bounds);
+        return snakeBound;
+    }
+
+    public int GetSnakeLength()
+    {
+        return snakeBodyList.Count;
     }
 }
