@@ -5,7 +5,7 @@ using UnityEngine.SceneManagement;
 public class PlayerController : MonoBehaviour
 {
     public float MoveSpeed;
-    public float MoveSpeedBoosted = 1.5f;
+    public float MoveSpeedBoosted = 1.25f;
     public GameObject snakeBodyPrefab;
     public BoxCollider2D borderWrappingCollider;
     public float powerUpTimer = 4f;
@@ -37,7 +37,7 @@ public class PlayerController : MonoBehaviour
 
     private void Awake()
     {
-        AwakeHelperFunctions();
+        InitializeSnake();
     }
     private void Start()
     {
@@ -45,7 +45,39 @@ public class PlayerController : MonoBehaviour
     }
     private void Update()
     {
-        //input
+        UpdateHelper();
+    }
+    private void FixedUpdate()
+    {
+        //physics
+        MovePlayerFixedUpdate();
+    }
+
+    // Private Awake initializer
+    private void InitializeSnake()
+    {
+        snakeRigidBody = GetComponent<Rigidbody2D>();
+        snakeBodyList = new List<GameObject>
+        {
+            this.gameObject
+        };
+        InitializeSnakeBodyList(1);
+    }
+
+    private void InitializeSnakeBodyList(int minimumSnakeLength)
+    {
+        for (int i = 0; i < minimumSnakeLength; i++)
+        {
+            GrowSnake("Initial");
+        }
+    }
+
+
+    // Private Update - helper functions
+
+    private void UpdateHelper()
+    {
+        //input mapping
         MovePlayerUpdate();
 
         // power up timers
@@ -54,10 +86,16 @@ public class PlayerController : MonoBehaviour
             ShieldTimer();
         }
 
-        if(IsSpeedBoosted)
+        if (IsSpeedBoosted)
         {
             SpeedTimer();
         }
+    }
+    private void MovePlayerUpdate()
+    {
+        SetupDirectionViaInputProvided();
+        GetInputMovement();
+        BorderWrapAround();
     }
 
     private void ShieldTimer()
@@ -88,51 +126,205 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void FixedUpdate()
-    {
-        //physics
-        MovePlayerFixedUpdate();
-    }
-
-    private void AwakeHelperFunctions()
-    {
-        snakeRigidBody = GetComponent<Rigidbody2D>();
-        snakeBodyList = new List<GameObject>
-        {
-            this.gameObject
-        };
-        InitializeSnakeBodyList(1);
-    }
-
-    private void InitializeSnakeBodyList(int minimumSnakeLength)
-    {
-        for (int i = 0; i < minimumSnakeLength; i++)
-        {
-            GrowSnake("Initial");
-        }
-    }
-
+    // Private FixedUpdate - helper/middleware
     private void MovePlayerFixedUpdate()
     {
         SetupTransformViaDirection();
-        SnakeBodyFollowsHead();
+        SnakeBodyFollowsHeadReverse();
     }
 
-    private void MovePlayerUpdate()
+    /* * * * Player Movement Controller */
+
+    /* Input related */
+
+    private void GetInputMovement()
     {
-        SetupDirectionViaInputProvided();
-        GetInputMovement();
-        BorderWrapAround();
+        //take input for direction
+        horizontal = Input.GetAxisRaw("Horizontal");
+        vertical = Input.GetAxisRaw("Vertical");
     }
 
-    /*
-     * * * * * * * * * * * Screen Wrapping * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
-     * get bounds of your camera's total viewing area by using a direct 
-     * reference of the bounds of a collider2d setup in the editor
-     * Alternative: attach boxcollider2d directly on camera component
-     * can be called directly from scripts without needing any public references
-     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+    private void SetupDirectionViaInputProvided()
+    {
+        if (horizontal == 1 && prevDirection != Direction.left)
+        {
+            prevDirection = currentDirection;
+            currentDirection = Direction.right;
+        }
+        if (horizontal == -1 && prevDirection != Direction.right)
+        {
+            prevDirection = currentDirection;
+            currentDirection = Direction.left;
+        }
+        if (vertical == 1 && prevDirection != Direction.down)
+        {
+            prevDirection = currentDirection;
+            currentDirection = Direction.up;
+
+        }
+        if (vertical == -1 && prevDirection != Direction.up)
+        {
+            prevDirection = currentDirection;
+            currentDirection = Direction.down;
+        }
+    }
+
+    // Physics related
+    /* change in transform according to input */
+
+    // top-down feel = -90, 180, 90, 0
+    // ?sideways feel = 0, 90, 0, 90
+    /* 
+     * Rotate Snake Head ie. player according to Direction 
      */
+    private void SetupTransformViaDirection()
+    {
+        float rotateImageLeftByEulerAngle = -90f;
+        float rotateImageUpwardsByEulerAngle = 180f;
+        float rotateImageRightByEulerAngle = 90f;
+        float rotateImageDownwardsByEulerAngle = 0f;
+
+        if (currentDirection == Direction.left)
+        {
+            TransformModifyViaDirection(Vector2.left);
+            transform.rotation = Quaternion.Euler(0f, 0f, rotateImageLeftByEulerAngle);
+        }
+        if (currentDirection == Direction.up)
+        {
+            TransformModifyViaDirection(Vector2.up);
+            transform.rotation = Quaternion.Euler(0f, 0f, rotateImageUpwardsByEulerAngle);
+        }
+        if (currentDirection == Direction.right)
+        {
+            TransformModifyViaDirection(Vector2.right);
+            transform.rotation = Quaternion.Euler(0f, 0f, rotateImageRightByEulerAngle);
+        }
+        if (currentDirection == Direction.down)
+        {
+            TransformModifyViaDirection(Vector2.down);
+            transform.rotation = Quaternion.Euler(0f, 0f, rotateImageDownwardsByEulerAngle);
+        }
+    }
+    /* Private Main Functions */
+    /* Player Movement - Related
+ * Main function for moving the snakeHead gameObject
+ * via modifying the transform.position every frame/Update
+ */
+    private void TransformModifyViaDirection(Vector2 directionValue)
+    {
+        Vector3 position = transform.position;
+        MoveDirectionVector = new Vector3(MoveSpeed * directionValue.x, MoveSpeed * directionValue.y);
+        position += MoveDirectionVector;
+        snakeRigidBody.MovePosition(position);
+    }
+
+    /* Private Move Snake Body functions
+     * main function(s) for moving snakeBody
+     * i =0 , snakeHead
+     * i >= 0++, snakeBody
+     * nth item gets position of (n - 1)th item
+     * only x,y values.  z values remain same for each item
+     */
+
+    private void SnakeBodyFollowsHeadReverse()
+    {
+        for (int i = snakeBodyList.Count - 1; i > 0; i--)
+        {
+            //get x, y values only for snake body
+            Vector2 prevPosition = snakeBodyList[i - 1].transform.position;
+            snakeBodyList[i].transform.position = new Vector3(prevPosition.x, prevPosition.y, snakeBodyList[i].transform.position.z);
+        }
+    }
+    private void SnakeBodyFollowsHead()
+    {
+        for (int i = 0; i < snakeBodyList.Count - 1; i++)
+        {
+            Vector2 position = snakeBodyList[i].transform.position;
+            snakeBodyList[i + 1].transform.position = new Vector3(position.x, position.y, snakeBodyList[i].transform.position.z);
+        }
+    }
+
+    /* * * * Player Interaction with spawned Objects - Food, Powerups
+    */
+
+    //Kill snake on contact with itself
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.CompareTag("PlayerBody"))
+        {
+            if (!IsShieldOn)
+            {
+                ReloadLevel();
+            }
+        }
+    }
+
+    private void ReloadLevel()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    }
+
+    /* * * * Public Helper functions for ColliderController */
+    public void ReduceSnakeSize()
+    {
+        for (int i = 0; i < 5; i++)
+        {
+            GameObject snakeBodyObject = snakeBodyList[snakeBodyList.Count - 1];
+            snakeBodyList.RemoveAt(snakeBodyList.Count - 1);
+            Destroy(snakeBodyObject);
+        }
+    }
+
+    /* Grow Snake 5 times */
+
+    public void GrowSnake()
+    {
+        for (int i = 0; i < 5; i++)
+        {
+            Vector3 position = GrowSnakeDeltaPosition();
+            GameObject snakeBodyTransform = Instantiate(snakeBodyPrefab, position, Quaternion.identity);
+            snakeBodyList.Add(snakeBodyTransform);
+        }
+    }
+
+    public void StartShieldPowerup()
+    {
+        IsShieldOn = true;
+        shieldPowerUpTimer = powerUpTimer;
+    }
+
+    public void StartSpeedBoost()
+    {
+        IsSpeedBoosted = true;
+        MoveSpeed = MoveSpeedBoosted;
+        SpeedPowerupTimer = powerUpTimer * 2;
+    }
+
+    /* * * * Public Helper functions for SpawnManager */
+    public Bounds GetSnakeTotalBound()
+    {
+        Bounds snakeBound = new Bounds();
+        for (int i = 0; i < snakeBodyList.Count; i++)
+            snakeBound.Encapsulate(snakeBodyList[i].GetComponent<Collider2D>().bounds);
+        return snakeBound;
+    }
+
+    public int GetSnakeLength()
+    {
+        return snakeBodyList.Count;
+    }
+
+    /* Private Helper Functions */
+
+    // Helper function for implementing Screen wrapping
+    /*
+        * * * * * * * * * * * Screen Wrapping * * * * * * * * * * * * * * * * * * * * 
+        * get bounds of your camera's total viewing area by using a direct 
+        * reference of the bounds of a collider2d setup in the editor
+        * Alternatively, attach boxcollider2d directly on camera component
+        * can be called directly from scripts without needing any public references
+        * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+    */
 
     private void BorderWrapAround()
     {
@@ -171,153 +363,8 @@ public class PlayerController : MonoBehaviour
         transform.position = position;
     }
 
-    /* 
-     * * * * * * * * * Player Movement Controller * * * * * * * * * *
-     * 
-     */
 
-    private void GetInputMovement()
-    {
-        //take input for direction
-        horizontal = Input.GetAxisRaw("Horizontal");
-        vertical = Input.GetAxisRaw("Vertical");
-    }
-
-    /* Horizontal:  1 = right, -1 = left
-     * Vertical: 1 = up, -1 = down
-     */
-
-    private void SetupDirectionViaInputProvided()
-    {
-        if (horizontal == 1 && prevDirection != Direction.left)
-        {
-            prevDirection = currentDirection;
-            currentDirection = Direction.right;
-        }
-        if (horizontal == -1 && prevDirection != Direction.right)
-        {
-            prevDirection = currentDirection;
-            currentDirection = Direction.left;
-        }
-        if (vertical == 1 && prevDirection != Direction.down)
-        {
-            prevDirection = currentDirection;
-            currentDirection = Direction.up;
-
-        }
-        if (vertical == -1 && prevDirection != Direction.up)
-        {
-            prevDirection = currentDirection;
-            currentDirection = Direction.down;
-        }
-    }
-
-    // top-down feel = -90, 180, 90, 0
-    // ?sideways feel = 0, 90, 0, 90
-    /* 
-     * Rotate Snake Head ie. player according to Direction 
-     */
-    private void SetupTransformViaDirection()
-    {
-        float rotateImageLeftByEulerAngle = -90f;
-        float rotateImageUpwardsByEulerAngle = 180f;
-        float rotateImageRightByEulerAngle = 90f;
-        float rotateImageDownwardsByEulerAngle = 0f;
-
-        if (currentDirection == Direction.left)
-        {
-            TransformModifyViaDirection(Vector2.left);
-            transform.rotation = Quaternion.Euler(0f, 0f, rotateImageLeftByEulerAngle);
-        }
-        if (currentDirection == Direction.up)
-        {
-            TransformModifyViaDirection(Vector2.up);
-            transform.rotation = Quaternion.Euler(0f, 0f, rotateImageUpwardsByEulerAngle);
-        }
-        if (currentDirection == Direction.right)
-        {
-            TransformModifyViaDirection(Vector2.right);
-            transform.rotation = Quaternion.Euler(0f, 0f, rotateImageRightByEulerAngle);
-        }
-        if (currentDirection == Direction.down)
-        {
-            TransformModifyViaDirection(Vector2.down);
-            transform.rotation = Quaternion.Euler(0f, 0f, rotateImageDownwardsByEulerAngle);
-        }
-    }
-
-    /*
-     * Main function for moving the snakeHead gameObject
-     * via modifying the transform.position every frame/Update
-     */
-    private void TransformModifyViaDirection(Vector2 directionValue)
-    {
-        Vector3 position = transform.position;
-        MoveDirectionVector = new Vector3(MoveSpeed * directionValue.x, MoveSpeed * directionValue.y);
-        position += MoveDirectionVector;
-        snakeRigidBody.MovePosition(position);
-    }
-
-    /* main function for moving snakeBody 
-     * loops in reverse order.
-     * i =0 , snakeHead
-     * i >= 0++, snakeBody
-     * nth item gets position of (n - 1)th item
-     * only x,y values.  z values remain same for each item
-     */
-
-    private void SnakeBodyFollowsHead()
-    {
-
-        for (int i = snakeBodyList.Count - 1; i > 0; i--)
-        {
-            //get x, y values only for snake body
-            Vector2 prevPosition = snakeBodyList[i - 1].transform.position;
-            snakeBodyList[i].transform.position = new Vector3(prevPosition.x, prevPosition.y, snakeBodyList[i].transform.position.z);
-        }
-    }
-
-    /* * * * Player Interaction with spawned Objects - Food, Powerups
-    */
-
-    private void OnTriggerEnter2D(Collider2D collision)
-    {
-        if (collision.CompareTag("PlayerBody"))
-        {
-            if (!IsShieldOn)
-            {
-                ReloadLevel();
-            }
-        }
-    }
-
-    private void ReloadLevel()
-    {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-    }
-
-    public void ReduceSnakeSize()
-    {
-        for (int i = 0; i < 5; i++)
-        {
-            GameObject snakeBodyObject = snakeBodyList[snakeBodyList.Count - 1];
-            snakeBodyList.RemoveAt(snakeBodyList.Count - 1);
-            Destroy(snakeBodyObject);
-        }
-    }
-
-    /* Grow Snake 5 times */
-
-    public void GrowSnake()
-    {
-        for (int i = 0; i < 5; i++)
-        {
-            Vector3 position = GrowSnakeDeltaPosition();
-            GameObject snakeBodyTransform = Instantiate(snakeBodyPrefab, position, Quaternion.identity);
-            snakeBodyList.Add(snakeBodyTransform);
-        }
-    }
-
+    // Helper function for GrowSnake
     private Vector3 GrowSnakeDeltaPosition()
     {
         Transform prevPrevtransform = snakeBodyList[snakeBodyList.Count - 2].transform;
@@ -341,31 +388,5 @@ public class PlayerController : MonoBehaviour
                 snakeBodyList.Add(snakeBodyObject);
             }
         }
-    }
-
-    public void StartShieldPowerup()
-    {
-        IsShieldOn = true;
-        shieldPowerUpTimer = powerUpTimer;
-    }
-
-    public void StartSpeedBoost()
-    {
-        IsSpeedBoosted = true;
-        MoveSpeed = MoveSpeedBoosted;
-        SpeedPowerupTimer = powerUpTimer * 2;
-    }
-
-    public Bounds GetSnakeTotalBound()
-    {
-        Bounds snakeBound = new Bounds();
-        for (int i = 0; i < snakeBodyList.Count; i++)
-            snakeBound.Encapsulate(snakeBodyList[i].GetComponent<Collider2D>().bounds);
-        return snakeBound;
-    }
-
-    public int GetSnakeLength()
-    {
-        return snakeBodyList.Count;
     }
 }
