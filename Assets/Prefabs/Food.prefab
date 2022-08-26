@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 7788186108107779953}
   - component: {fileID: 7788186108107779958}
   - component: {fileID: 8511213241092019988}
-  - component: {fileID: -6886280151002068278}
+  - component: {fileID: 1345727423161802772}
   m_Layer: 0
   m_Name: Food
   m_TagString: FoodMassGainer
@@ -110,7 +110,7 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 0.8, y: 0.9}
   m_EdgeRadius: 0
---- !u!114 &-6886280151002068278
+--- !u!114 &1345727423161802772
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -119,6 +119,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 7788186108107779959}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7b8d18be83112ea4aaefe3b9a47fc08d, type: 3}
+  m_Script: {fileID: 11500000, guid: 2751a8a807a3ec449881f0b7245cd83c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  massGainer: {fileID: 7788186108107779959}
+  massBurner: {fileID: 7788186108107779959, guid: f2c44675645813f40b28ed2a29dcbb6d, type: 3}
+  shieldBoost: {fileID: 9097118193217640809, guid: c618baaafba06754ea15fa021091c01d, type: 3}
+  speedBoost: {fileID: 303758979079597921, guid: fe2cef8a7fd647a479ffb8c4c77697ef, type: 3}
