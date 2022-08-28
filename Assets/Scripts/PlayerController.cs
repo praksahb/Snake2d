@@ -2,23 +2,20 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+public class Snakey
+{
+    public SnakeType snakeType;
+    public GameObject snakeParts;
 
+    public Snakey(SnakeType enumVal, GameObject objVal)
+    {
+        snakeType = enumVal;
+        snakeParts = objVal;
+    }
+}
 
 public class PlayerController : MonoBehaviour
 {
-    public class Snakey
-    {
-        public SnakeType snakeType;
-        public GameObject snakeParts;
-
-        public Snakey(SnakeType enumVal, GameObject objVal)
-        {
-            snakeType = enumVal;
-            snakeParts = objVal;
-        }
-    }
-
-
     public float MoveSpeed;
     public float MoveSpeedBoosted = 1.25f;
     public float powerUpTimer = 4f;
@@ -45,6 +42,9 @@ public class PlayerController : MonoBehaviour
     private float shieldPowerUpTimer;
     private float speedPowerupTimer;
     private float scoreBoostTimer;
+
+    private BoxCollider2D boxCollider2D;
+    private BoxCollider2D snkBody;
 
     private void Awake()
     {
@@ -80,7 +80,7 @@ public class PlayerController : MonoBehaviour
     private void InitializeSnakeBodyList()
     {
         //grows by 5 - for loop creates 5 snake bodies and adds to ListArray
-            GrowSnake("Initial");
+        GrowSnake("Initial");
     }
 
     /* Private Update - Main functions */
@@ -271,15 +271,16 @@ public class PlayerController : MonoBehaviour
     //Kill snake on contact with itself
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        Snakey col = collision.gameObject.GetComponent<Snakey>();
+        SnakeBodyController snkBdy = collision.gameObject.GetComponent<SnakeBodyController>();
 
-        Debug.Log("Collision: " + col.snakeType);
-
-        if (col != null)
+        if (snkBdy != null)
         {
-            if (!IsShieldOn)
+            if (snkBdy.snakeType == SnakeType.snakeBody)
             {
-                ReloadLevel();
+                if (!IsShieldOn)
+                {
+                    ReloadLevel();
+                }
             }
         }
     }
@@ -347,7 +348,7 @@ public class PlayerController : MonoBehaviour
     {
         Bounds snakeBound = new Bounds();
         for (int i = 0; i < snakeBodyList.Count; i++)
-            snakeBound.Encapsulate(snakeBodyList[i].snakeParts.GetComponent<Collider2D>().bounds);
+            snakeBound.Encapsulate(snakeBodyList[i].snakeParts.GetComponent<Renderer>().bounds);
         return snakeBound;
     }
 
@@ -427,6 +428,9 @@ public class PlayerController : MonoBehaviour
 
                 GameObject snakeBodyObject = Instantiate(snakeBodyPrefab, position, Quaternion.identity);
                 snakeBodyObject.tag = "InitialPlayerBody";
+
+
+                Destroy(snakeBodyObject.GetComponent<BoxCollider2D>());
 
                 Snakey snake = new Snakey(SnakeType.snakeHead, snakeBodyObject);
                 Debug.Log("snake initial enum: " + snake.snakeType);
