@@ -4,6 +4,10 @@ using UnityEngine.SceneManagement;
 
 public class PlayerController : MonoBehaviour
 {
+
+    public SnakeType snakeTypeEnum = SnakeType.snakeHead;
+    private Direction prevDirection = Direction.down, currentDirection = Direction.down;
+    
     public float MoveSpeed;
     public float MoveSpeedBoosted = 1.25f;
     public float powerUpTimer = 4f;
@@ -11,17 +15,18 @@ public class PlayerController : MonoBehaviour
     public int scoreDecrementerNegativeValue = -4;
 
     public ScoreController scoreController;
+    public SnakeBodyController snakeBodyController;
+
     public GameObject snakeBodyPrefab;
     public BoxCollider2D screenWrappingCollider;
 
     private Rigidbody2D snakeRigidBody;
     private Vector3 MoveDirectionVector;
-    private Direction prevDirection = Direction.down, currentDirection = Direction.down;
     private float horizontal, vertical;
 
     private float originalMoveSpeed;
 
-    private List<GameObject> snakeBodyList;
+    private List<GameObject> snakeHeadList;
 
     private bool IsShieldOn;
     private bool IsSpeedBoostOn;
@@ -30,14 +35,7 @@ public class PlayerController : MonoBehaviour
     private float shieldPowerUpTimer;
     private float speedPowerupTimer;
     private float scoreBoostTimer;
-
-    private enum Direction
-    {
-        left,
-        up,
-        right,
-        down,
-    }
+    private bool IsPaused;
 
     private void Awake()
     {
@@ -50,7 +48,26 @@ public class PlayerController : MonoBehaviour
     private void Update()
     {
         UpdateHelper();
+
+        if(Input.GetKeyDown(KeyCode.Escape))
+        {
+            IsPaused = !IsPaused;
+            TogglePauseResume();
+        }
     }
+
+    private void TogglePauseResume()
+    {
+        if(IsPaused)
+        {
+            Time.timeScale = 0;
+        }
+        if(!IsPaused)
+        {
+            Time.timeScale = 1;
+        }
+    }
+
     private void FixedUpdate()
     {
         MovePlayerFixedUpdate();
@@ -60,7 +77,7 @@ public class PlayerController : MonoBehaviour
     private void InitializeSnake()
     {
         snakeRigidBody = GetComponent<Rigidbody2D>();
-        snakeBodyList = new List<GameObject>
+        snakeHeadList = new List<GameObject>
         {
             this.gameObject
         };
@@ -249,35 +266,44 @@ public class PlayerController : MonoBehaviour
 
     private void SnakeBodyFollowsHeadReverse()
     {
-        for (int i = snakeBodyList.Count - 1; i > 0; i--)
+        for (int i = snakeHeadList.Count - 1; i > 0; i--)
         {
-            //get x, y values only for snake body
-            Vector2 prevPosition = snakeBodyList[i - 1].transform.position;
-            snakeBodyList[i].transform.position = new Vector3(prevPosition.x, prevPosition.y, snakeBodyList[i].transform.position.z);
+            snakeHeadList[i].transform.position = snakeHeadList[i - 1].transform.position;
         }
     }
     private void SnakeBodyFollowsHead()
     {
-        for (int i = 0; i < snakeBodyList.Count - 1; i++)
+        for (int i = 0; i < snakeHeadList.Count - 1; i++)
         {
-            Vector2 position = snakeBodyList[i].transform.position;
-            snakeBodyList[i + 1].transform.position = new Vector3(position.x, position.y, snakeBodyList[i].transform.position.z);
+            snakeHeadList[i + 1].transform.position = snakeHeadList[i].transform.position;
         }
     }
 
     /* * * * Player Interaction with spawned Objects - Food, Powerups
     */
 
-    //Kill snake on contact with itself
+    //Kill snake on contact with self
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.CompareTag("PlayerBody"))
+        SnakeBodyController Collider = collision.GetComponent<SnakeBodyController>();
+
+        PlayerController playerController = gameObject.GetComponent<PlayerController>();
+
+        if(Collider != null)
         {
-            if (!IsShieldOn)
+            if(Collider.snakeBodyEnum == playerController.snakeTypeEnum)
             {
                 ReloadLevel();
             }
         }
+        
+        //if (pcCollider.snakeTypeEnum == SnakeType.snakeBody)
+        //{
+        //    if (!IsShieldOn)
+        //    {
+        //        ReloadLevel();
+        //    }
+        //}
     }
 
     private void ReloadLevel()
@@ -285,15 +311,24 @@ public class PlayerController : MonoBehaviour
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
+    /* PUBLIC methods */
+
+    public void KillPlayer()
+    {
+        if (!IsShieldOn)
+            ReloadLevel();
+    }
+
     /* * * * Public Helper functions for ColliderController */
+
     public void ReduceSnakeSize()
     {
         scoreController.ScoreUpdater(scoreDecrementerNegativeValue);
 
         for (int i = 0; i < 5; i++)
         {
-            GameObject snakeBodyObject = snakeBodyList[snakeBodyList.Count - 1];
-            snakeBodyList.RemoveAt(snakeBodyList.Count - 1);
+            GameObject snakeBodyObject = snakeHeadList[snakeHeadList.Count - 1];
+            snakeHeadList.RemoveAt(snakeHeadList.Count - 1);
             Destroy(snakeBodyObject);
         }
     }
@@ -304,12 +339,14 @@ public class PlayerController : MonoBehaviour
     {
         scoreController.ScoreUpdater(scoreIncrementer);
 
-        for (int i = 0; i < 5; i++)
-        {
-            Vector3 position = GrowSnakeDeltaPosition();
-            GameObject snakeBodyTransform = Instantiate(snakeBodyPrefab, position, Quaternion.identity);
-            snakeBodyList.Add(snakeBodyTransform);
-        }
+        //for (int i = 0; i < 5; i++)
+        //{
+        //    Vector3 position = GrowSnakeDeltaPosition();
+        //    GameObject snakeBodyTransform = Instantiate(snakeBodyPrefab, position, Quaternion.identity);
+        //    snakeHeadList.Add(snakeBodyTransform);
+        //}
+
+        snakeBodyController.GrowSnake();
     }
 
     public void StartShieldPowerup()
@@ -333,18 +370,23 @@ public class PlayerController : MonoBehaviour
         speedPowerupTimer = powerUpTimer * 2;
     }
 
+    public Vector3 GetEndSnakeHeadPosition()
+    {
+        return snakeHeadList[snakeHeadList.Count - 1].transform.position;
+    }
+
     /* * * * Public Helper functions for SpawnManager */
     public Bounds GetSnakeTotalBound()
     {
         Bounds snakeBound = new Bounds();
-        for (int i = 0; i < snakeBodyList.Count; i++)
-            snakeBound.Encapsulate(snakeBodyList[i].GetComponent<Collider2D>().bounds);
+        for (int i = 0; i < snakeHeadList.Count; i++)
+            snakeBound.Encapsulate(snakeHeadList[i].GetComponent<Collider2D>().bounds);
         return snakeBound;
     }
 
     public int GetSnakeLength()
     {
-        return snakeBodyList.Count;
+        return snakeHeadList.Count;
     }
 
     /* Private Helper Functions */
@@ -400,8 +442,8 @@ public class PlayerController : MonoBehaviour
     // Helper function for GrowSnake
     private Vector3 GrowSnakeDeltaPosition()
     {
-        Transform prevPrevtransform = snakeBodyList[snakeBodyList.Count - 2].transform;
-        Transform prevSnake = snakeBodyList[snakeBodyList.Count - 1].transform;
+        Transform prevPrevtransform = snakeHeadList[snakeHeadList.Count - 2].transform;
+        Transform prevSnake = snakeHeadList[snakeHeadList.Count - 1].transform;
         Vector3 deltaPosition = prevPrevtransform.position - prevSnake.position;
         return new Vector3(prevSnake.position.x + deltaPosition.x, prevSnake.position.y + deltaPosition.y, 0);
     }
@@ -412,13 +454,14 @@ public class PlayerController : MonoBehaviour
         {
             for (int i = 0; i < 5; i++)
             {
-                Vector2 deltaPosition = new Vector2(0, 0.5f);
-                Transform prevSnake = snakeBodyList[snakeBodyList.Count - 1].transform;
-                Vector3 position = new Vector3(prevSnake.position.x, prevSnake.position.y + deltaPosition.y, 0);
+                // 0.5f is moveSpeed
+                // initially moving downwards
+                Vector2 deltaPosition = new Vector2(0, 1f);
+                Transform prevSnake = snakeHeadList[snakeHeadList.Count - 1].transform;
+                Vector3 position = new Vector3(prevSnake.position.x, prevSnake.position.y + deltaPosition.y);
 
                 GameObject snakeBodyObject = Instantiate(snakeBodyPrefab, position, Quaternion.identity);
-                snakeBodyObject.tag = "InitialPlayerBody";
-                snakeBodyList.Add(snakeBodyObject);
+                snakeHeadList.Add(snakeBodyObject);
             }
         }
     }

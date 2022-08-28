@@ -8,14 +8,27 @@ public class ColliderController : MonoBehaviour
     public GameObject scoreBoost;
     public GameObject speedBoost;
 
+    public SnakeBodyController snakeBodyController;
+
+
+    /* Upgrade the project Collisions using Interface & Enums to make it scalable */
+
+
     private void OnTriggerEnter2D(Collider2D collision)
     {
         PlayerController playerController = collision.gameObject.GetComponent<PlayerController>();
 
+
         if (playerController)
         {
-        /* Food Trigger checks */
-            if (gameObject == massGainer && playerController)
+            if (gameObject == snakeBodyController)
+            {
+                playerController.KillPlayer();
+
+            }
+
+            /* Food Trigger checks */
+            if (gameObject == massGainer)
             {
                 playerController.GrowSnake();
                 gameObject.SetActive(false);

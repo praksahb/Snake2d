@@ -95,12 +95,12 @@ public class SpawnManager : MonoBehaviour
         return snakeBounds.Contains(randomSpawnPosition) ? RandomSpawnPosition(snakeBounds) : randomSpawnPosition;
     }
 
-    private void SpawnFood(Vector2 spawnPosition, GameObject foodPrefab, float destroyTime)
+    private void SpawnFood(Vector3 spawnPosition, GameObject foodPrefab, float destroyTime)
     {
         GameObject food = Instantiate(foodPrefab, spawnPosition, Quaternion.identity);
         Destroy(food, destroyTime);
     }
-    private void SpawnPowerup(Vector2 spawnPosi, GameObject powerUpPrefab)
+    private void SpawnPowerup(Vector3 spawnPosi, GameObject powerUpPrefab)
     {
         GameObject powerUp = Instantiate(powerUpPrefab, spawnPosi, Quaternion.identity);
         Destroy(powerUp, 8f);

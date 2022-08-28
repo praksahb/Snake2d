@@ -127,3 +127,4 @@ MonoBehaviour:
   shieldBoost: {fileID: 9097118193217640809, guid: c618baaafba06754ea15fa021091c01d, type: 3}
   scoreBoost: {fileID: 3794024604482374139, guid: ac7882301f6e08c4c879a9fbaeef6bc0, type: 3}
   speedBoost: {fileID: 303758979079597921, guid: fe2cef8a7fd647a479ffb8c4c77697ef, type: 3}
+  snakeBody: {fileID: 479711895100530717, guid: 4f9ae6536ef5dc2479bf02b4e6da803c, type: 3}
