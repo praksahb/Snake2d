@@ -2,6 +2,18 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+public class Snakey
+{
+    public SnakeType snakeType;
+    public GameObject snakeParts;
+
+    public Snakey(SnakeType enumVal, GameObject objVal)
+    {
+        snakeType = enumVal;
+        snakeParts = objVal;
+    }
+}
+
 public class PlayerController : MonoBehaviour
 {
     public float MoveSpeed;
@@ -21,7 +33,7 @@ public class PlayerController : MonoBehaviour
 
     private float originalMoveSpeed;
 
-    private List<GameObject> snakeBodyList;
+    private List<Snakey> snakeBodyList;
 
     private bool IsShieldOn;
     private bool IsSpeedBoostOn;
@@ -31,13 +43,8 @@ public class PlayerController : MonoBehaviour
     private float speedPowerupTimer;
     private float scoreBoostTimer;
 
-    private enum Direction
-    {
-        left,
-        up,
-        right,
-        down,
-    }
+    private BoxCollider2D boxCollider2D;
+    private BoxCollider2D snkBody;
 
     private void Awake()
     {
@@ -60,9 +67,12 @@ public class PlayerController : MonoBehaviour
     private void InitializeSnake()
     {
         snakeRigidBody = GetComponent<Rigidbody2D>();
-        snakeBodyList = new List<GameObject>
+
+        Snakey snake = new Snakey(SnakeType.snakeHead, gameObject);
+
+        snakeBodyList = new List<Snakey>
         {
-            this.gameObject
+            snake,
         };
         InitializeSnakeBodyList();
     }
@@ -70,7 +80,7 @@ public class PlayerController : MonoBehaviour
     private void InitializeSnakeBodyList()
     {
         //grows by 5 - for loop creates 5 snake bodies and adds to ListArray
-            GrowSnake("Initial");
+        GrowSnake("Initial");
     }
 
     /* Private Update - Main functions */
@@ -251,17 +261,7 @@ public class PlayerController : MonoBehaviour
     {
         for (int i = snakeBodyList.Count - 1; i > 0; i--)
         {
-            //get x, y values only for snake body
-            Vector2 prevPosition = snakeBodyList[i - 1].transform.position;
-            snakeBodyList[i].transform.position = new Vector3(prevPosition.x, prevPosition.y, snakeBodyList[i].transform.position.z);
-        }
-    }
-    private void SnakeBodyFollowsHead()
-    {
-        for (int i = 0; i < snakeBodyList.Count - 1; i++)
-        {
-            Vector2 position = snakeBodyList[i].transform.position;
-            snakeBodyList[i + 1].transform.position = new Vector3(position.x, position.y, snakeBodyList[i].transform.position.z);
+            snakeBodyList[i].snakeParts.transform.position = snakeBodyList[i - 1].snakeParts.transform.position;
         }
     }
 
@@ -271,11 +271,16 @@ public class PlayerController : MonoBehaviour
     //Kill snake on contact with itself
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.CompareTag("PlayerBody"))
+        SnakeBodyController snkBdy = collision.gameObject.GetComponent<SnakeBodyController>();
+
+        if (snkBdy != null)
         {
-            if (!IsShieldOn)
+            if (snkBdy.snakeType == SnakeType.snakeBody)
             {
-                ReloadLevel();
+                if (!IsShieldOn)
+                {
+                    ReloadLevel();
+                }
             }
         }
     }
@@ -292,7 +297,7 @@ public class PlayerController : MonoBehaviour
 
         for (int i = 0; i < 5; i++)
         {
-            GameObject snakeBodyObject = snakeBodyList[snakeBodyList.Count - 1];
+            GameObject snakeBodyObject = snakeBodyList[snakeBodyList.Count - 1].snakeParts;
             snakeBodyList.RemoveAt(snakeBodyList.Count - 1);
             Destroy(snakeBodyObject);
         }
@@ -308,7 +313,12 @@ public class PlayerController : MonoBehaviour
         {
             Vector3 position = GrowSnakeDeltaPosition();
             GameObject snakeBodyTransform = Instantiate(snakeBodyPrefab, position, Quaternion.identity);
-            snakeBodyList.Add(snakeBodyTransform);
+
+            Snakey snake = new Snakey(SnakeType.snakeBody, snakeBodyTransform);
+            Debug.Log("snake added enum: " + snake.snakeType);
+            Debug.Log("snake added obj: " + snake.snakeParts);
+
+            snakeBodyList.Add(snake);
         }
     }
 
@@ -338,7 +348,7 @@ public class PlayerController : MonoBehaviour
     {
         Bounds snakeBound = new Bounds();
         for (int i = 0; i < snakeBodyList.Count; i++)
-            snakeBound.Encapsulate(snakeBodyList[i].GetComponent<Collider2D>().bounds);
+            snakeBound.Encapsulate(snakeBodyList[i].snakeParts.GetComponent<Renderer>().bounds);
         return snakeBound;
     }
 
@@ -400,8 +410,8 @@ public class PlayerController : MonoBehaviour
     // Helper function for GrowSnake
     private Vector3 GrowSnakeDeltaPosition()
     {
-        Transform prevPrevtransform = snakeBodyList[snakeBodyList.Count - 2].transform;
-        Transform prevSnake = snakeBodyList[snakeBodyList.Count - 1].transform;
+        Transform prevPrevtransform = snakeBodyList[snakeBodyList.Count - 2].snakeParts.transform;
+        Transform prevSnake = snakeBodyList[snakeBodyList.Count - 1].snakeParts.transform;
         Vector3 deltaPosition = prevPrevtransform.position - prevSnake.position;
         return new Vector3(prevSnake.position.x + deltaPosition.x, prevSnake.position.y + deltaPosition.y, 0);
     }
@@ -413,12 +423,19 @@ public class PlayerController : MonoBehaviour
             for (int i = 0; i < 5; i++)
             {
                 Vector2 deltaPosition = new Vector2(0, 0.5f);
-                Transform prevSnake = snakeBodyList[snakeBodyList.Count - 1].transform;
+                Transform prevSnake = snakeBodyList[snakeBodyList.Count - 1].snakeParts.transform;
                 Vector3 position = new Vector3(prevSnake.position.x, prevSnake.position.y + deltaPosition.y, 0);
 
                 GameObject snakeBodyObject = Instantiate(snakeBodyPrefab, position, Quaternion.identity);
                 snakeBodyObject.tag = "InitialPlayerBody";
-                snakeBodyList.Add(snakeBodyObject);
+
+
+                Destroy(snakeBodyObject.GetComponent<BoxCollider2D>());
+
+                Snakey snake = new Snakey(SnakeType.snakeHead, snakeBodyObject);
+                Debug.Log("snake initial enum: " + snake.snakeType);
+                Debug.Log("snake initial obj: " + snake.snakeParts.name);
+                snakeBodyList.Add(snake);
             }
         }
     }
