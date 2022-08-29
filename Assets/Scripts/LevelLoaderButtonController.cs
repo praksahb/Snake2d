@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-public class buttonScript : MonoBehaviour
+public class LevelLoaderButtonController : MonoBehaviour
 {
     public int sceneIndex;
 
