@@ -43,13 +43,12 @@ public class PlayerController : MonoBehaviour
     private float speedPowerupTimer;
     private float scoreBoostTimer;
 
-    private BoxCollider2D boxCollider2D;
-    private BoxCollider2D snkBody;
 
     private void Awake()
     {
         InitializeSnake();
     }
+
     private void Start()
     {
         originalMoveSpeed = MoveSpeed;
