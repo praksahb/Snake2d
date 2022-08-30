@@ -7,3 +7,8 @@ public enum SnakeType
 {
     none, snakeHead, snakeBody
 }
+
+public enum SpawnType
+{
+    massGainer, massBurner, shieldBoost, scoreBoost, speedBoost,
+}

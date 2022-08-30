@@ -20,11 +20,17 @@ public class PlayerController : MonoBehaviour
     public float MoveSpeedBoosted = 1.25f;
     public float powerUpTimer = 4f;
     public int scoreIncrementer = 5;
-    public int scoreDecrementerNegativeValue = -4;
+    public int scoreDecrementer = -4;
 
     public ScoreController scoreController;
+    public CanvasController canvasController;
     public GameObject snakeBodyPrefab;
     public BoxCollider2D screenWrappingCollider;
+
+    public KeyCode keyUp;
+    public KeyCode keyDown;
+    public KeyCode keyLeft;
+    public KeyCode keyRight;
 
     private Rigidbody2D snakeRigidBody;
     private Vector3 MoveDirectionVector;
@@ -35,21 +41,20 @@ public class PlayerController : MonoBehaviour
 
     private List<Snakey> snakeBodyList;
 
-    private bool IsShieldOn;
-    private bool IsSpeedBoostOn;
+    private bool IsShieldOn = false;
+    private bool IsSpeedBoostOn = false;
     private bool IsScoreBoostOn = false;
 
-    private float shieldPowerUpTimer;
-    private float speedPowerupTimer;
-    private float scoreBoostTimer;
+    private float shieldBoostTimer = 0;
+    private float speedPowerupTimer = 0;
+    private float scoreBoostTimer = 0;
 
-    private BoxCollider2D boxCollider2D;
-    private BoxCollider2D snkBody;
 
     private void Awake()
     {
         InitializeSnake();
     }
+
     private void Start()
     {
         originalMoveSpeed = MoveSpeed;
@@ -116,15 +121,16 @@ public class PlayerController : MonoBehaviour
 
     private void ShieldBoostTimer()
     {
-        if (shieldPowerUpTimer > 0)
+        if (shieldBoostTimer > 0)
         {
-            shieldPowerUpTimer -= Time.deltaTime;
+            shieldBoostTimer -= Time.deltaTime;
+            Debug.Log(IsShieldOn);
         }
         else
         {
+            Debug.Log(IsShieldOn);
             IsShieldOn = false;
-            //reset timer to 0 
-            shieldPowerUpTimer = 0;
+            shieldBoostTimer = 0;
         }
     }
 
@@ -138,7 +144,7 @@ public class PlayerController : MonoBehaviour
         {
             IsScoreBoostOn = false;
             scoreIncrementer /= 2;
-            scoreDecrementerNegativeValue *= 2;
+            scoreDecrementer *= 2;
             scoreBoostTimer = 0;
         }
     }
@@ -171,8 +177,32 @@ public class PlayerController : MonoBehaviour
     private void GetInputMovement()
     {
         //take input for direction
-        horizontal = Input.GetAxisRaw("Horizontal");
-        vertical = Input.GetAxisRaw("Vertical");
+
+        if (SceneManager.GetActiveScene().buildIndex == 1)
+        {
+            horizontal = Input.GetAxisRaw("Horizontal");
+            vertical = Input.GetAxisRaw("Vertical");
+        }
+
+        if (SceneManager.GetActiveScene().buildIndex == 2)
+        {
+            if (Input.GetKeyDown(keyUp))
+                vertical = 1;
+            if (Input.GetKeyUp(keyUp))
+                vertical = 0;
+            if (Input.GetKeyDown(keyDown))
+                vertical = -1;
+            if (Input.GetKeyUp(keyDown))
+                vertical = 0;
+            if (Input.GetKeyDown(keyLeft))
+                horizontal = -1;
+            if (Input.GetKeyUp(keyLeft))
+                horizontal = 0;
+            if (Input.GetKeyDown(keyRight))
+                horizontal = 1;
+            if (Input.GetKeyUp(keyRight))
+                horizontal = 0;
+        }
     }
 
     private void SetupDirectionViaInputProvided()
@@ -279,13 +309,24 @@ public class PlayerController : MonoBehaviour
             {
                 if (!IsShieldOn)
                 {
-                    ReloadLevel();
+                    Debug.Log("Tux");
+                    GameOver();
+
+                    //activate gameOver screen menu
                 }
             }
         }
     }
 
-    private void ReloadLevel()
+    private void GameOver()
+    {
+        if (IsShieldOn == false)
+        {
+            canvasController.ToggleGameOverMenu();
+        }
+    }
+
+    public void ReloadLevel()
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
@@ -293,7 +334,7 @@ public class PlayerController : MonoBehaviour
     /* * * * Public Helper functions for ColliderController */
     public void ReduceSnakeSize()
     {
-        scoreController.ScoreUpdater(scoreDecrementerNegativeValue);
+        scoreController.ScoreUpdater(scoreDecrementer);
 
         for (int i = 0; i < 5; i++)
         {
@@ -315,24 +356,23 @@ public class PlayerController : MonoBehaviour
             GameObject snakeBodyTransform = Instantiate(snakeBodyPrefab, position, Quaternion.identity);
 
             Snakey snake = new Snakey(SnakeType.snakeBody, snakeBodyTransform);
-            Debug.Log("snake added enum: " + snake.snakeType);
-            Debug.Log("snake added obj: " + snake.snakeParts);
 
             snakeBodyList.Add(snake);
         }
     }
 
-    public void StartShieldPowerup()
+    public void StartShieldBoost()
     {
         IsShieldOn = true;
-        shieldPowerUpTimer = powerUpTimer;
+        shieldBoostTimer = powerUpTimer;
+        Debug.Log(shieldBoostTimer);
     }
 
     public void StartScoreBoost()
     {
         IsScoreBoostOn = true;
         scoreIncrementer *= 2;
-        scoreDecrementerNegativeValue /= 2;
+        scoreDecrementer /= 2;
         scoreBoostTimer = powerUpTimer * 2;
     }
 
@@ -433,8 +473,6 @@ public class PlayerController : MonoBehaviour
                 Destroy(snakeBodyObject.GetComponent<BoxCollider2D>());
 
                 Snakey snake = new Snakey(SnakeType.snakeHead, snakeBodyObject);
-                Debug.Log("snake initial enum: " + snake.snakeType);
-                Debug.Log("snake initial obj: " + snake.snakeParts.name);
                 snakeBodyList.Add(snake);
             }
         }

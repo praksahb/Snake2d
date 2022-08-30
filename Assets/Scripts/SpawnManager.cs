@@ -148,19 +148,16 @@ public class SpawnManager : MonoBehaviour
             case 0:
                 //shield
                 SpawnPowerup(RandomSpawnPosition(snakeBound), ShieldPrefabPowerup);
-                //shieldCooldownTimer = powerupCooldownTime;
                 break;
 
             case 1:
                 //score
                 SpawnPowerup(RandomSpawnPosition(snakeBound), ScorePrefabPowerup);
-                //scoreCooldownTimer = powerupCooldownTime;
                 break;
 
             case 2:
                 //speed
                 SpawnPowerup(RandomSpawnPosition(snakeBound), SpeedPrefabPowerup);
-                //speedCooldownTimer = powerupCooldownTime;
                 break;
         }
     }

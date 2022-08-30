@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 8511213241092019988}
   - component: {fileID: 1345727423161802772}
   m_Layer: 0
-  m_Name: Food
+  m_Name: MassGainer
   m_TagString: FoodMassGainer
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
