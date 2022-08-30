@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 1286922863546838251}
   - component: {fileID: 1673515919305855144}
   - component: {fileID: 6119754906514073662}
-  - component: {fileID: 7583488642913395145}
+  - component: {fileID: 8086128476470768322}
   m_Layer: 0
   m_Name: SpeedPowerup
   m_TagString: Untagged
@@ -73,8 +73,8 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: 7a350d612aea7cb4f85bcec7eb7d9258, type: 3}
-  m_Color: {r: 0, g: 0, b: 0, a: 1}
+  m_Sprite: {fileID: 21300000, guid: f8fa269803fc78e4da20eeb2d2555219, type: 3}
+  m_Color: {r: 1, g: 1, b: 0, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -99,9 +99,9 @@ BoxCollider2D:
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
   m_SpriteTilingProperty:
-    border: {x: 0.03125, y: 0.03125, z: 0.03125, w: 0.03125}
+    border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 2, y: 2}
+    oldSize: {x: 2.8846154, y: 2.8846154}
     newSize: {x: 2, y: 2}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -110,7 +110,7 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
---- !u!114 &7583488642913395145
+--- !u!114 &8086128476470768322
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -122,8 +122,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2751a8a807a3ec449881f0b7245cd83c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  massGainer: {fileID: 7788186108107779959, guid: 032b106869d2c7549b71c41b25251177, type: 3}
-  massBurner: {fileID: 7788186108107779959, guid: f2c44675645813f40b28ed2a29dcbb6d, type: 3}
-  shieldBoost: {fileID: 9097118193217640809, guid: c618baaafba06754ea15fa021091c01d, type: 3}
-  scoreBoost: {fileID: 3794024604482374139, guid: ac7882301f6e08c4c879a9fbaeef6bc0, type: 3}
-  speedBoost: {fileID: 303758979079597921}
+  spawnType: 4

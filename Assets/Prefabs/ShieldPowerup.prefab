@@ -73,8 +73,8 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: 7a350d612aea7cb4f85bcec7eb7d9258, type: 3}
-  m_Color: {r: 0, g: 0, b: 1, a: 1}
+  m_Sprite: {fileID: 21300000, guid: 29744a42e0582ba438ec166a5aa04d3d, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -99,9 +99,9 @@ BoxCollider2D:
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
   m_SpriteTilingProperty:
-    border: {x: 0.03125, y: 0.03125, z: 0.03125, w: 0.03125}
+    border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 2, y: 2}
+    oldSize: {x: 2.61, y: 2.82}
     newSize: {x: 2, y: 2}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -122,8 +122,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2751a8a807a3ec449881f0b7245cd83c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  massGainer: {fileID: 7788186108107779959, guid: 032b106869d2c7549b71c41b25251177, type: 3}
-  massBurner: {fileID: 7788186108107779959, guid: f2c44675645813f40b28ed2a29dcbb6d, type: 3}
-  shieldBoost: {fileID: 9097118193217640809}
-  scoreBoost: {fileID: 3794024604482374139, guid: ac7882301f6e08c4c879a9fbaeef6bc0, type: 3}
-  speedBoost: {fileID: 303758979079597921, guid: fe2cef8a7fd647a479ffb8c4c77697ef, type: 3}
+  spawnType: 2

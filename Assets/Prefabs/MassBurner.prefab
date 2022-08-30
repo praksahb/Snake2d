@@ -122,8 +122,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2751a8a807a3ec449881f0b7245cd83c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  massGainer: {fileID: 7788186108107779959, guid: 032b106869d2c7549b71c41b25251177, type: 3}
-  massBurner: {fileID: 7788186108107779959}
-  shieldBoost: {fileID: 9097118193217640809, guid: c618baaafba06754ea15fa021091c01d, type: 3}
-  scoreBoost: {fileID: 3794024604482374139, guid: ac7882301f6e08c4c879a9fbaeef6bc0, type: 3}
-  speedBoost: {fileID: 303758979079597921, guid: fe2cef8a7fd647a479ffb8c4c77697ef, type: 3}
+  spawnType: 1

@@ -15,6 +15,6 @@ public class LevelLoaderButtonController : MonoBehaviour
 
     private void LoadLevel()
     {
-        UIManager.Instance.LoadLevelByIndex(sceneIndex);
+        LevelManager.Instance.LoadLevelByIndex(sceneIndex);
     }
 }

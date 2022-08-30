@@ -1,12 +1,11 @@
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
-public class UIManager : MonoBehaviour
+public class LevelManager : MonoBehaviour
 {
 
-    private static UIManager instance;
-    public static UIManager Instance { get { return instance; } }
+    private static LevelManager instance;
+    public static LevelManager Instance { get { return instance; } }
 
     private void Awake()
     {
