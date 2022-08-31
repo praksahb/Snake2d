@@ -331,13 +331,14 @@ public class PlayerController : MonoBehaviour
             //multiplayer
             if (SceneManager.GetActiveScene().buildIndex == 2)
             {
-                if (snkBdy.playerType != pCtrl.playerType && snkBdy.snakeType == SnakeType.none)
-                {
-                    canvasController.ToggleGameOverMenuMultiplayer(Player.none);
-                }
-                else
+
                 if (pCtrl.playerType == Player.playerLeft)
                 {
+                    if (snkBdy.playerType != pCtrl.playerType && snkBdy.snakeType == SnakeType.none)
+                    {
+                        canvasController.ToggleGameOverMenuMultiplayer(Player.none);
+                    }
+                    else
                     if (snkBdy.playerType == Player.playerRight)
                     {
                         //playerLeft 1 has won
@@ -348,7 +349,7 @@ public class PlayerController : MonoBehaviour
                         // playerLeft killed self
                         //player Right has won
 
-                        canvasController.ToggleGameOverMenuMultiplayer(snkBdy.playerType);
+                        canvasController.ToggleGameOverMenuMultiplayer(Player.playerRight);
                     }
 
 
@@ -370,7 +371,7 @@ public class PlayerController : MonoBehaviour
                     {
                         // playerRight killed self
                         //playerLeft 1 has won
-                        canvasController.ToggleGameOverMenuMultiplayer(snkBdy.playerType);
+                        canvasController.ToggleGameOverMenuMultiplayer(Player.playerLeft);
                     }
                 }
             }
