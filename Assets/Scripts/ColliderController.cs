@@ -2,11 +2,6 @@ using UnityEngine;
 
 public class ColliderController : MonoBehaviour
 {
-    //public GameObject massGainer;
-    //public GameObject massBurner;
-    //public GameObject shieldBoost;
-    //public GameObject scoreBoost;
-    //public GameObject speedBoost;
 
     public SpawnType spawnType;
 
@@ -24,7 +19,7 @@ public class ColliderController : MonoBehaviour
                 if (colCtrl.spawnType == SpawnType.massGainer)
                 {
                     Debug.Log("Ate food");
-                    playerController.GrowSnake();
+                    playerController.GrowSnake(playerController.playerType);
                     gameObject.SetActive(false);
                 }
 

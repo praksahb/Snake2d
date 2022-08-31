@@ -100,6 +100,7 @@ public class SpawnManager : MonoBehaviour
         GameObject food = Instantiate(foodPrefab, spawnPosition, Quaternion.identity);
         Destroy(food, destroyTime);
     }
+
     private void SpawnPowerup(Vector2 spawnPosi, GameObject powerUpPrefab)
     {
         GameObject powerUp = Instantiate(powerUpPrefab, spawnPosi, Quaternion.identity);
