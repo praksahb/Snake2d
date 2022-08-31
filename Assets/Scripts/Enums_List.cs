@@ -15,5 +15,5 @@ public enum SpawnType
 
 public enum Player
 {
-    singlePlayer, playerLeft, playerRight,
+    singlePlayer, playerLeft, playerRight, bluePlayer = playerLeft, blackPlayer = playerRight, none,
 } 
