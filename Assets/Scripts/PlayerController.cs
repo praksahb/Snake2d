@@ -54,10 +54,11 @@ public class PlayerController : MonoBehaviour
     private float speedPowerupTimer = 0;
     private float scoreBoostTimer = 0;
 
-
+    private int sceneIndex;
     private void Awake()
     {
         InitializeSnake();
+        sceneIndex = SceneManager.GetActiveScene().buildIndex;
     }
 
     private void Start()
@@ -181,13 +182,13 @@ public class PlayerController : MonoBehaviour
     {
         //take input for direction
 
-        if (SceneManager.GetActiveScene().buildIndex == 1)
+        if (sceneIndex == 1)
         {
             horizontal = Input.GetAxisRaw("Horizontal");
             vertical = Input.GetAxisRaw("Vertical");
         }
 
-        if (SceneManager.GetActiveScene().buildIndex == 2)
+        if (sceneIndex == 2)
         {
             if (Input.GetKeyDown(keyUp))
                 vertical = 1;
@@ -311,30 +312,28 @@ public class PlayerController : MonoBehaviour
     private void OnTriggerEnter2D(Collider2D collision)
     {
         SnakeBodyController snkBdy = collision.gameObject.GetComponent<SnakeBodyController>();
-        PlayerController pCtrl = gameObject.GetComponent<PlayerController>();
+        PlayerController snkHead = gameObject.GetComponent<PlayerController>();
 
-        if (snkBdy != null && pCtrl != null)
+        if (snkBdy != null && snkHead != null)
         {
             //single player
-            if (SceneManager.GetActiveScene().buildIndex == 1)
+            if (sceneIndex == 1)
             {
                 if (snkBdy.snakeType == SnakeType.snakeBody)
                 {
                     if (!IsShieldOn)
                     {
-                        Debug.Log("Tux");
                         GameOver();
                     }
                 }
             }
 
             //multiplayer
-            if (SceneManager.GetActiveScene().buildIndex == 2)
+            if (sceneIndex == 2)
             {
-
-                if (pCtrl.playerType == Player.playerLeft)
+                if (snkHead.playerType == Player.playerLeft)
                 {
-                    if (snkBdy.playerType != pCtrl.playerType && snkBdy.snakeType == SnakeType.none)
+                    if (snkBdy.playerType != snkHead.playerType && snkBdy.snakeType == SnakeType.none)
                     {
                         canvasController.ToggleGameOverMenuMultiplayer(Player.none);
                     }
@@ -342,22 +341,20 @@ public class PlayerController : MonoBehaviour
                     if (snkBdy.playerType == Player.playerRight)
                     {
                         //playerLeft 1 has won
-                        canvasController.ToggleGameOverMenuMultiplayer(pCtrl.playerType);
+                        canvasController.ToggleGameOverMenuMultiplayer(snkHead.playerType);
                     }
-                    if (snkBdy.playerType == pCtrl.playerType && snkBdy.snakeType == SnakeType.snakeBody)
+                    if (snkBdy.playerType == snkHead.playerType && snkBdy.snakeType == SnakeType.snakeBody)
                     {
                         // playerLeft killed self
                         //player Right has won
 
                         canvasController.ToggleGameOverMenuMultiplayer(Player.playerRight);
                     }
-
-
                 }
 
-                if (pCtrl.playerType == Player.playerRight)
+                if (snkHead.playerType == Player.playerRight)
                 {
-                    if (snkBdy.playerType != pCtrl.playerType && snkBdy.snakeType == SnakeType.none)
+                    if (snkBdy.playerType != snkHead.playerType && snkBdy.snakeType == SnakeType.none)
                     {
                         canvasController.ToggleGameOverMenuMultiplayer(Player.none);
                     }
@@ -365,9 +362,9 @@ public class PlayerController : MonoBehaviour
                     if (snkBdy.playerType == Player.playerLeft)
                     {
                         //playerRight has won
-                        canvasController.ToggleGameOverMenuMultiplayer(pCtrl.playerType);
+                        canvasController.ToggleGameOverMenuMultiplayer(snkHead.playerType);
                     }
-                    if (snkBdy.playerType == pCtrl.playerType && snkBdy.snakeType == SnakeType.snakeBody)
+                    if (snkBdy.playerType == snkHead.playerType && snkBdy.snakeType == SnakeType.snakeBody)
                     {
                         // playerRight killed self
                         //playerLeft 1 has won
@@ -388,13 +385,14 @@ public class PlayerController : MonoBehaviour
 
     public void ReloadLevel()
     {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        SceneManager.LoadScene(sceneIndex);
     }
 
     /* * * * Public Helper functions for ColliderController */
     public void ReduceSnakeSize()
     {
-        scoreController.ScoreUpdater(scoreDecrementer);
+        if(SceneManager.GetActiveScene().buildIndex == 1)
+            scoreController.ScoreUpdater(scoreDecrementer);
 
         for (int i = 0; i < 5; i++)
         {
@@ -431,7 +429,6 @@ public class PlayerController : MonoBehaviour
 
             snakeBodyList.Add(snake);
         }
-
     }
 
     public void StartShieldBoost()
@@ -478,6 +475,7 @@ public class PlayerController : MonoBehaviour
         * reference of the bounds of a collider2d setup in the editor
         * Alternatively, attach boxcollider2d directly on camera component
         * can be called directly from scripts without needing any public references
+        * will need a GetComponent call though
         * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
     */
 
