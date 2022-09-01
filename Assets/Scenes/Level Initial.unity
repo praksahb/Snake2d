@@ -1105,8 +1105,11 @@ MonoBehaviour:
   gameOverMenu: {fileID: 1884716183}
   currentScore: {fileID: 398865854}
   highScore: {fileID: 474940295}
-  playerController: {fileID: 0}
+  playerController: {fileID: 1424581152}
   scoreController: {fileID: 166732308}
+  blueWon: {fileID: 0}
+  blackWon: {fileID: 0}
+  noneWon: {fileID: 0}
 --- !u!1001 &579054643
 PrefabInstance:
   m_ObjectHideFlags: 0
