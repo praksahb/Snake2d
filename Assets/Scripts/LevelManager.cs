@@ -12,6 +12,11 @@ public class LevelManager : MonoBehaviour
         CreateSingleton();
     }
 
+    private void Start()
+    {
+        SoundManager.Instance.PlayMusic(Sounds.MusicBgLobby);
+    }
+
     private void Update()
     {
 

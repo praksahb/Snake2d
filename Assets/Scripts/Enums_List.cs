@@ -16,4 +16,8 @@ public enum SpawnType
 public enum Player
 {
     singlePlayer, playerLeft, playerRight, bluePlayer = playerLeft, blackPlayer = playerRight, none,
-} 
+}
+public enum Sounds
+{
+    MusicBgLobby, EffectsDeath
+}

@@ -15,6 +15,7 @@ public class LevelLoaderButtonController : MonoBehaviour
 
     private void LoadLevel()
     {
+        SoundManager.Instance.StopMusic();
         LevelManager.Instance.LoadLevelByIndex(sceneIndex);
     }
 }
