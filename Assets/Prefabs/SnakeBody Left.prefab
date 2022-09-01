@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 4071772684305073089}
   - component: {fileID: 4407358434699012663}
   m_Layer: 0
-  m_Name: SnakeBody
+  m_Name: SnakeBody Left
   m_TagString: PlayerBody
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -123,4 +123,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   snakeType: 2
-  playerType: 0
+  playerType: 1

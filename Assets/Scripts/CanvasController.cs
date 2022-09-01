@@ -12,6 +12,10 @@ public class CanvasController : MonoBehaviour
     public PlayerController playerController;
     public ScoreController scoreController;
 
+    public GameObject blueWon;
+    public GameObject blackWon;
+    public GameObject noneWon;
+
     private int cScore;
     private int hScore;
 
@@ -71,6 +75,31 @@ public class CanvasController : MonoBehaviour
         CompareUpdateScore();
 
         UpdateHighScoreUI();
+    }
+
+    public void ToggleGameOverMenuMultiplayer(Player pType)
+    {
+        gameOverMenu.SetActive(true);
+        ToggleTextUI(pType);  
+        IsGameOver = true;
+        Time.timeScale = 0;
+    }
+
+    public void ToggleTextUI(Player pType)
+    {
+        if (pType == Player.none)
+        {
+            noneWon.SetActive(true);
+        } else
+        if (pType == Player.bluePlayer)
+        {
+            blueWon.SetActive(true);
+        }
+        if (pType == Player.blackPlayer)
+        {
+            blackWon.SetActive(true);
+        }
+
     }
 
     private void GetCurrentScore()

@@ -24,19 +24,24 @@ public class PlayerController : MonoBehaviour
 
     public ScoreController scoreController;
     public CanvasController canvasController;
-    public GameObject snakeBodyPrefab;
+    public GameObject snakeBodyPrefabSingle;
+    public GameObject snakeBodyPrefabLeft;
+    public GameObject snakeBodyPrefabRight;
     public BoxCollider2D screenWrappingCollider;
+
+    public Player playerType;
 
     public KeyCode keyUp;
     public KeyCode keyDown;
     public KeyCode keyLeft;
     public KeyCode keyRight;
 
+    private Direction prevDirection = Direction.down, currentDirection = Direction.down;
     private Rigidbody2D snakeRigidBody;
     private Vector3 MoveDirectionVector;
-    private Direction prevDirection = Direction.down, currentDirection = Direction.down;
-    private float horizontal, vertical;
+    private GameObject tempObjPrefab;
 
+    private float horizontal, vertical;
     private float originalMoveSpeed;
 
     private List<Snakey> snakeBodyList;
@@ -85,7 +90,7 @@ public class PlayerController : MonoBehaviour
     private void InitializeSnakeBodyList()
     {
         //grows by 5 - for loop creates 5 snake bodies and adds to ListArray
-        GrowSnake("Initial");
+        GrowSnake(0);
     }
 
     /* Private Update - Main functions */
@@ -124,11 +129,9 @@ public class PlayerController : MonoBehaviour
         if (shieldBoostTimer > 0)
         {
             shieldBoostTimer -= Time.deltaTime;
-            Debug.Log(IsShieldOn);
         }
         else
         {
-            Debug.Log(IsShieldOn);
             IsShieldOn = false;
             shieldBoostTimer = 0;
         }
@@ -299,20 +302,77 @@ public class PlayerController : MonoBehaviour
     */
 
     //Kill snake on contact with itself
+
+    /* 
+     *  Work here last part remaining logic - win condition 
+     *  and new game over ui and game won ui combined
+     */
+
     private void OnTriggerEnter2D(Collider2D collision)
     {
         SnakeBodyController snkBdy = collision.gameObject.GetComponent<SnakeBodyController>();
+        PlayerController pCtrl = gameObject.GetComponent<PlayerController>();
 
-        if (snkBdy != null)
+        if (snkBdy != null && pCtrl != null)
         {
-            if (snkBdy.snakeType == SnakeType.snakeBody)
+            //single player
+            if (SceneManager.GetActiveScene().buildIndex == 1)
             {
-                if (!IsShieldOn)
+                if (snkBdy.snakeType == SnakeType.snakeBody)
                 {
-                    Debug.Log("Tux");
-                    GameOver();
+                    if (!IsShieldOn)
+                    {
+                        Debug.Log("Tux");
+                        GameOver();
+                    }
+                }
+            }
 
-                    //activate gameOver screen menu
+            //multiplayer
+            if (SceneManager.GetActiveScene().buildIndex == 2)
+            {
+
+                if (pCtrl.playerType == Player.playerLeft)
+                {
+                    if (snkBdy.playerType != pCtrl.playerType && snkBdy.snakeType == SnakeType.none)
+                    {
+                        canvasController.ToggleGameOverMenuMultiplayer(Player.none);
+                    }
+                    else
+                    if (snkBdy.playerType == Player.playerRight)
+                    {
+                        //playerLeft 1 has won
+                        canvasController.ToggleGameOverMenuMultiplayer(pCtrl.playerType);
+                    }
+                    if (snkBdy.playerType == pCtrl.playerType && snkBdy.snakeType == SnakeType.snakeBody)
+                    {
+                        // playerLeft killed self
+                        //player Right has won
+
+                        canvasController.ToggleGameOverMenuMultiplayer(Player.playerRight);
+                    }
+
+
+                }
+
+                if (pCtrl.playerType == Player.playerRight)
+                {
+                    if (snkBdy.playerType != pCtrl.playerType && snkBdy.snakeType == SnakeType.none)
+                    {
+                        canvasController.ToggleGameOverMenuMultiplayer(Player.none);
+                    }
+                    else
+                    if (snkBdy.playerType == Player.playerLeft)
+                    {
+                        //playerRight has won
+                        canvasController.ToggleGameOverMenuMultiplayer(pCtrl.playerType);
+                    }
+                    if (snkBdy.playerType == pCtrl.playerType && snkBdy.snakeType == SnakeType.snakeBody)
+                    {
+                        // playerRight killed self
+                        //playerLeft 1 has won
+                        canvasController.ToggleGameOverMenuMultiplayer(Player.playerLeft);
+                    }
                 }
             }
         }
@@ -346,26 +406,38 @@ public class PlayerController : MonoBehaviour
 
     /* Grow Snake 5 times */
 
-    public void GrowSnake()
+    public void GrowSnake(Player whichPlayer)
     {
-        scoreController.ScoreUpdater(scoreIncrementer);
+        if (whichPlayer == Player.singlePlayer)
+        {
+            scoreController.ScoreUpdater(scoreIncrementer);
+            tempObjPrefab = snakeBodyPrefabSingle;
+        }
+        if (whichPlayer == Player.playerLeft)
+        {
+            tempObjPrefab = snakeBodyPrefabLeft;
+        }
+        if (whichPlayer == Player.playerRight)
+        {
+            tempObjPrefab = snakeBodyPrefabRight;
+        }
 
         for (int i = 0; i < 5; i++)
         {
             Vector3 position = GrowSnakeDeltaPosition();
-            GameObject snakeBodyTransform = Instantiate(snakeBodyPrefab, position, Quaternion.identity);
+            GameObject snakeBodyTransform = Instantiate(tempObjPrefab, position, Quaternion.identity);
 
             Snakey snake = new Snakey(SnakeType.snakeBody, snakeBodyTransform);
 
             snakeBodyList.Add(snake);
         }
+
     }
 
     public void StartShieldBoost()
     {
         IsShieldOn = true;
         shieldBoostTimer = powerUpTimer;
-        Debug.Log(shieldBoostTimer);
     }
 
     public void StartScoreBoost()
@@ -446,7 +518,6 @@ public class PlayerController : MonoBehaviour
         transform.position = position;
     }
 
-
     // Helper function for GrowSnake
     private Vector3 GrowSnakeDeltaPosition()
     {
@@ -456,25 +527,35 @@ public class PlayerController : MonoBehaviour
         return new Vector3(prevSnake.position.x + deltaPosition.x, prevSnake.position.y + deltaPosition.y, 0);
     }
 
-    private void GrowSnake(string value)
+    private void GrowSnake(int value)
     {
-        if (value == "Initial")
+        if (playerType == Player.singlePlayer)
         {
-            for (int i = 0; i < 5; i++)
-            {
-                Vector2 deltaPosition = new Vector2(0, 0.5f);
-                Transform prevSnake = snakeBodyList[snakeBodyList.Count - 1].snakeParts.transform;
-                Vector3 position = new Vector3(prevSnake.position.x, prevSnake.position.y + deltaPosition.y, 0);
+            tempObjPrefab = snakeBodyPrefabSingle;
+        }
+        if (playerType == Player.playerLeft)
+        {
+            tempObjPrefab = snakeBodyPrefabLeft;
+        }
+        if (playerType == Player.playerRight)
+        {
+            tempObjPrefab = snakeBodyPrefabRight;
+        }
 
-                GameObject snakeBodyObject = Instantiate(snakeBodyPrefab, position, Quaternion.identity);
-                snakeBodyObject.tag = "InitialPlayerBody";
+        for (int i = 0; i < 5; i++)
+        {
+            Vector2 deltaPosition = new Vector2(0, 0.5f);
+            Transform prevSnake = snakeBodyList[snakeBodyList.Count - 1].snakeParts.transform;
+            Vector3 position = new Vector3(prevSnake.position.x, prevSnake.position.y + deltaPosition.y, 0);
 
+            GameObject snakeBodyObject = Instantiate(tempObjPrefab, position, Quaternion.identity);
+            snakeBodyObject.tag = "InitialPlayerBody";
 
-                Destroy(snakeBodyObject.GetComponent<BoxCollider2D>());
+            snakeBodyObject.GetComponent<SnakeBodyController>().snakeType = SnakeType.none;
+            //Destroy(snakeBodyObject.GetComponent<BoxCollider2D>());
 
-                Snakey snake = new Snakey(SnakeType.snakeHead, snakeBodyObject);
-                snakeBodyList.Add(snake);
-            }
+            Snakey snake = new Snakey(SnakeType.snakeHead, snakeBodyObject);
+            snakeBodyList.Add(snake);
         }
     }
 }
