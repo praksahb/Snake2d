@@ -1,7 +1,7 @@
 # Snake2d
 
 Implemented the classic snake game in unity.
-Contains two modes singleplayer and multiplayer
+Contains two modes singleplayer and multiplayer.
 Power ups spawned: Speed boost, score booster and immunity booster(snake cannot die) 
 
 
