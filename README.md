@@ -1,6 +1,9 @@
 # Snake2d
-Snake 2D
- building in unity 2020.3.4.f1
+
+Implemented the classic snake game in unity.
+Contains two modes singleplayer and multiplayer
+Power ups spawned: Speed boost, score booster and immunity booster(snake cannot die) 
+
 
 using assets for snake head and body from 
 https://opengameart.org/content/snake-game-assets
