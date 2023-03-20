@@ -6,7 +6,7 @@ Implemented the classic snake game in unity.
 Learned basics of unity 2D development like 
 object creation/instantiation from prefabs at runtime.
 learned how and why to avoid using string comparisons
-use case of enums for int comparisons and code readibility
+used enums for int comparisons and code readibility
 
 Contains two modes singleplayer and multiplayer.
 
